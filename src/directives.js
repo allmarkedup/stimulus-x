@@ -1,0 +1,155 @@
+import { getProperty } from "dot-prop";
+import { onAttributeRemoved } from "./mutation";
+import { elementBoundEffect } from "./reactivity";
+import { applyModifiers } from "./modifiers";
+
+let directiveHandlers = {};
+let isDeferringHandlers = false;
+let directiveHandlerStacks = new Map();
+let currentHandlerStackKey = Symbol();
+
+let attributePrefix = "data-bind-";
+
+export function directive(name, callback) {
+  directiveHandlers[name] = callback;
+}
+
+export function directiveExists(name) {
+  return Object.keys(directiveHandlers).includes(name);
+}
+
+export function directives(el, attributes) {
+  const directives = Array.from(attributes).filter(isDirectiveAttribute).map(toParsedDirectives);
+
+  return directives.flat().map((directive) => getDirectiveHandler(el, directive));
+}
+
+export function deferHandlingDirectives(callback) {
+  isDeferringHandlers = true;
+
+  let key = Symbol();
+
+  currentHandlerStackKey = key;
+  directiveHandlerStacks.set(key, []);
+
+  let flushHandlers = () => {
+    while (directiveHandlerStacks.get(key).length) directiveHandlerStacks.get(key).shift()();
+    directiveHandlerStacks.delete(key);
+  };
+
+  let stopDeferring = () => {
+    isDeferringHandlers = false;
+    flushHandlers();
+  };
+
+  callback(flushHandlers);
+  stopDeferring();
+}
+
+export function getElementBoundUtilities(el) {
+  let cleanups = [];
+  let cleanup = (callback) => cleanups.push(callback);
+  let [effect, cleanupEffect] = elementBoundEffect(el);
+
+  cleanups.push(cleanupEffect);
+
+  let utilities = {
+    effect,
+    cleanup,
+  };
+
+  let doCleanup = () => {
+    cleanups.forEach((i) => i());
+  };
+
+  return [utilities, doCleanup];
+}
+
+export function getDirectiveHandler(el, directive) {
+  let handler = directiveHandlers[directive.type] || (() => {});
+  let [utilities, cleanup] = getElementBoundUtilities(el);
+
+  onAttributeRemoved(el, directive.attr, cleanup);
+
+  let wrapperHandler = (application) => {
+    let controller = getClosestController(el, directive.identifier, application);
+    if (controller) {
+      handler = handler.bind(handler, el, directive, {
+        ...utilities,
+        evaluate: evaluator(controller, el),
+        modify: applyModifiers,
+      });
+      isDeferringHandlers
+        ? directiveHandlerStacks.get(currentHandlerStackKey).push(handler)
+        : handler();
+    } else {
+      console.error(`Controller '${directive.indentifier}' not found`);
+    }
+  };
+
+  return wrapperHandler;
+}
+
+function evaluator(controller, el) {
+  return (property) => {
+    let value = getProperty(controller, property);
+    if (typeof value === "function") {
+      value = value(el);
+    }
+    return value;
+  };
+}
+
+function matchedAttributeRegex() {
+  return new RegExp(`${attributePrefix}(${Object.keys(directiveHandlers).join("|")})$`);
+}
+
+function isDirectiveAttribute({ name }) {
+  return matchedAttributeRegex().test(name);
+}
+
+function toParsedDirectives({ name, value }) {
+  const type = name.match(matchedAttributeRegex())[1];
+  const bindingExpressions = value
+    .trim()
+    .split(" ")
+    .filter((e) => e);
+
+  return bindingExpressions.map((bindingExpression) => {
+    const subjectMatch = bindingExpression.match(/^([a-zA-Z0-9\-_]+)~/);
+    const subject = subjectMatch ? subjectMatch[1] : null;
+    let valueExpression = subject
+      ? bindingExpression.replace(`${subject}~`, "")
+      : bindingExpression;
+
+    let modifiers = valueExpression.match(/\:[^:\]]+(?=[^\]]*$)/g) || [];
+    modifiers = modifiers.map((i) => i.replace(":", ""));
+
+    if (valueExpression[0] === "!") {
+      valueExpression = valueExpression.slice(1);
+      modifiers.push("not");
+    }
+
+    valueExpression = valueExpression.split(":")[0];
+
+    const identifierMatch = valueExpression.match(/^([a-zA-Z0-9\-_]+)#/);
+    const identifier = identifierMatch ? identifierMatch[1] : null;
+    const property = identifier ? valueExpression.replace(`${identifier}#`, "") : valueExpression;
+
+    return {
+      type,
+      subject,
+      modifiers,
+      identifier,
+      property,
+      attr: name,
+    };
+  });
+}
+
+function getClosestController(el, identifier, application) {
+  const controllerElement = el.closest(`[data-controller~="${identifier}"]`);
+  if (controllerElement) {
+    return application.getControllerForElementAndIdentifier(controllerElement, identifier);
+  }
+}

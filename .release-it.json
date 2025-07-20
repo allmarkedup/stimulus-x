@@ -1,0 +1,7 @@
+{
+  "$schema": "https://unpkg.com/release-it/schema/release-it.json",
+  "hooks": {
+    "before:init": ["npm test"],
+    "after:bump": "npm run build"
+  }
+}
