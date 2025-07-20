@@ -13,7 +13,8 @@
     "url": "git+ssh://git@github.com/allmarkedup/stimulus-x.git"
   },
   "source": "src/index.js",
-  "main": "dist/main.js",
+  "main": "dist/main.cjs",
+  "module": "dist/main.mjs",
   "cdn": "dist/cdn.js",
   "demo": "dist/demo.html",
   "type": "module",
@@ -27,9 +28,6 @@
       "engines": {
         "browsers": "> 0.5%, last 2 versions, not dead"
       }
-    },
-    "main": {
-      "includeNodeModules": true
     }
   },
   "keywords": [
@@ -52,7 +50,6 @@
     "dot-prop": "^9.0.0"
   },
   "devDependencies": {
-    "@parcel/resolver-glob": "^2.15.4",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/user-event": "^14.6.1",
