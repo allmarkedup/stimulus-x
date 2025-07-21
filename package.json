@@ -13,8 +13,7 @@
     "url": "git+ssh://git@github.com/allmarkedup/stimulus-x.git"
   },
   "source": "src/index.js",
-  "main": "dist/main.cjs",
-  "module": "dist/main.mjs",
+  "main": "dist/main.js",
   "cdn": "dist/cdn.js",
   "demo": "dist/demo.html",
   "type": "module",
@@ -41,7 +40,7 @@
     "watch": "parcel watch",
     "build": "parcel build",
     "serve": "parcel serve --target=demo",
-    "test": "node --experimental-vm-modules --disable-warning=ExperimentalWarning node_modules/jest/bin/jest.js",
+    "test": "vitest",
     "release": "release-it"
   },
   "dependencies": {
@@ -53,9 +52,10 @@
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/user-event": "^14.6.1",
-    "jest": "^30.0.4",
-    "jest-environment-jsdom": "^30.0.4",
+    "babel-jest": "^30.0.4",
+    "happy-dom": "^18.0.1",
     "parcel": "^2.15.2",
-    "release-it": "^19.0.3"
+    "release-it": "^19.0.3",
+    "vitest": "^3.2.4"
   }
 }

@@ -1,55 +1,37 @@
 import { Application } from "@hotwired/stimulus";
-import StimulusX from "../../dist/main";
+import { StimulusX } from "../../src";
+import { nextTick } from "./helpers";
 
-export class TestContext {
-  #application = null;
-  #controllerClass = null;
+export async function createTestContext() {
+  const app = Application.start();
+  await nextTick(() => StimulusX.extend(app));
 
-  constructor(...args) {
-    if (args.length === 2) {
-      [this.identifier, this.#controllerClass] = args;
-    } else {
-      this.identifier = "subject";
-      this.#controllerClass = args[0];
-    }
+  function subject(ControllerClass) {
+    app.register("subject", ControllerClass);
   }
 
-  async setup(html) {
-    this.teardown();
-    const app = Application.start();
+  async function html(html) {
+    document.body.innerHTML = html;
 
-    StimulusX.extend(app);
+    return nextTick(() => ({
+      get subjectElement() {
+        return document.querySelector(`[data-controller~="subject"]`);
+      },
 
-    app.register(this.identifier, this.#controllerClass);
+      get subjectController() {
+        return app.getControllerForElementAndIdentifier(this.subjectElement, "subject");
+      },
 
-    this.#application = app;
-    return this.setHTML(html);
+      getTestElement(name) {
+        return document.querySelector(`[data-test-element="${name}"]`);
+      },
+    }));
   }
 
-  teardown() {
-    this.#application?.stop();
+  async function reset() {
     document.body.innerHTML = "";
+    await nextTick(() => app.unload("subject"));
   }
 
-  async setHTML(htmlString) {
-    document.body.innerHTML = htmlString;
-    return this;
-  }
-
-  get controller() {
-    const element = document.body.firstElementChild;
-    return this.#application.getControllerForElementAndIdentifier(element, this.identifier);
-  }
-
-  get subject() {
-    return this.controller.element;
-  }
-
-  get elements() {
-    const testElements = {};
-    Array.from(document.querySelectorAll("[data-test-element]")).forEach((el) => {
-      testElements[el.getAttribute("data-test-element")] = el;
-    });
-    return testElements;
-  }
+  return { html, subject, reset };
 }
