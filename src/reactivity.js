@@ -1,14 +1,10 @@
-import { stop as release, reactive, ReactiveEffect } from "@vue/reactivity";
+import { effect as vueEffect, stop as release, reactive, raw } from "@vue/reactivity";
 import { scheduler } from "./scheduler";
 
-function effect(callback) {
-  const effectInstance = new ReactiveEffect(callback, {
+const effect = (callback) =>
+  vueEffect(callback, {
     scheduler: scheduler((task) => task),
   });
-
-  effectInstance.run.bind(effectInstance)();
-  return effectInstance;
-}
 
 export function elementBoundEffect(el) {
   let cleanup = () => {};
