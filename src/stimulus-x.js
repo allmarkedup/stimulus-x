@@ -68,11 +68,11 @@ function rootElements() {
 function initTree(el, application) {
   deferHandlingDirectives(() => {
     walk(el, (el) => {
-      if (el._stimulus_x_marker) return;
+      if (el.__stimulusX_marker) return;
 
       directives(el, el.attributes).forEach((handle) => handle(application));
 
-      el._stimulus_x_marker = markerCount++;
+      el.__stimulusX_marker = markerCount++;
     });
   });
 }
@@ -81,7 +81,7 @@ function destroyTree(root) {
   walk(root, (el) => {
     cleanupElement(el);
     cleanupAttributes(el);
-    delete el._stimulus_x_marker;
+    delete el.__stimulusX_marker;
   });
 }
 

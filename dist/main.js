@@ -1,4 +1,4 @@
-import {ReactiveEffect as $5OpyM$ReactiveEffect, stop as $5OpyM$stop, reactive as $5OpyM$reactive} from "@vue/reactivity";
+import {effect as $5OpyM$effect, stop as $5OpyM$stop, reactive as $5OpyM$reactive, raw as $5OpyM$raw} from "@vue/reactivity";
 import {getProperty as $5OpyM$getProperty} from "dot-prop";
 
 
@@ -58,22 +58,18 @@ function $eae25d6e66596517$export$e9a53d8785d6cfc9() {
 }
 
 
-function $3ee5a2b2e05cc741$export$dc573d8a6576cdb3(callback) {
-    const effectInstance = new (0, $5OpyM$ReactiveEffect)(callback, {
+const $3ee5a2b2e05cc741$export$dc573d8a6576cdb3 = (callback)=>(0, $5OpyM$effect)(callback, {
         scheduler: (0, $eae25d6e66596517$export$d30788f2c20241cd)((task)=>task)
     });
-    effectInstance.run.bind(effectInstance)();
-    return effectInstance;
-}
 function $3ee5a2b2e05cc741$export$1ecd3170301acce1(el) {
     let cleanup = ()=>{};
     let wrappedEffect = (callback)=>{
         let effectReference = $3ee5a2b2e05cc741$export$dc573d8a6576cdb3(callback);
-        if (!el._stimulus_x_effects) el._stimulus_x_effects = new Set();
-        el._stimulus_x_effects.add(effectReference);
+        if (!el.__stimulusX_effects) el.__stimulusX_effects = new Set();
+        el.__stimulusX_effects.add(effectReference);
         cleanup = ()=>{
             if (effectReference === undefined) return;
-            el._stimulus_x_effects.delete(effectReference);
+            el.__stimulusX_effects.delete(effectReference);
             (0, $5OpyM$stop)(effectReference);
         };
         return effectReference;
@@ -129,8 +125,8 @@ function $c6f8b3abaeac122e$export$c395e4fde41c37ff(callback) {
 }
 function $c6f8b3abaeac122e$export$bb8862ef847f5ec0(el, callback) {
     if (typeof callback === "function") {
-        if (!el._stimulus_x_cleanups) el._stimulus_x_cleanups = [];
-        el._stimulus_x_cleanups.push(callback);
+        if (!el.__stimulusX_cleanups) el.__stimulusX_cleanups = [];
+        el.__stimulusX_cleanups.push(callback);
     } else {
         callback = el;
         $c6f8b3abaeac122e$var$onElRemoveds.push(callback);
@@ -140,25 +136,25 @@ function $c6f8b3abaeac122e$export$545f7104b1510552(callback) {
     $c6f8b3abaeac122e$var$onAttributeAddeds.push(callback);
 }
 function $c6f8b3abaeac122e$export$5d89a587b01747c6(el, name, callback) {
-    if (!el._stimulus_x_attributeCleanups) el._stimulus_x_attributeCleanups = {};
-    if (!el._stimulus_x_attributeCleanups[name]) el._stimulus_x_attributeCleanups[name] = [];
-    el._stimulus_x_attributeCleanups[name].push(callback);
+    if (!el.__stimulusX_attributeCleanups) el.__stimulusX_attributeCleanups = {};
+    if (!el.__stimulusX_attributeCleanups[name]) el.__stimulusX_attributeCleanups[name] = [];
+    el.__stimulusX_attributeCleanups[name].push(callback);
 }
 function $c6f8b3abaeac122e$export$309d6f15c1c4d36e(callback) {
     $c6f8b3abaeac122e$var$onValueAttributeChangeds.push(callback);
 }
 function $c6f8b3abaeac122e$export$2c8bfe603cc113da(el, names) {
-    if (!el._stimulus_x_attributeCleanups) return;
-    Object.entries(el._stimulus_x_attributeCleanups).forEach(([name, value])=>{
+    if (!el.__stimulusX_attributeCleanups) return;
+    Object.entries(el.__stimulusX_attributeCleanups).forEach(([name, value])=>{
         if (names === undefined || names.includes(name)) {
             value.forEach((i)=>i());
-            delete el._stimulus_x_attributeCleanups[name];
+            delete el.__stimulusX_attributeCleanups[name];
         }
     });
 }
 function $c6f8b3abaeac122e$export$21fc366069a4f56f(el) {
     el._x_effects?.forEach((0, $eae25d6e66596517$export$edbe2d8b64bcb07c));
-    while(el._stimulus_x_cleanups?.length)el._stimulus_x_cleanups.pop()();
+    while(el.__stimulusX_cleanups?.length)el.__stimulusX_cleanups.pop()();
 }
 function $c6f8b3abaeac122e$export$1a5ae5db40475a2d() {
     $c6f8b3abaeac122e$var$observer.observe(document, {
@@ -212,12 +208,12 @@ function $c6f8b3abaeac122e$var$onMutate(mutations) {
     let addedAttributes = new Map();
     let removedAttributes = new Map();
     for(let i = 0; i < mutations.length; i++){
-        if (mutations[i].target._stimulus_x_ignoreMutationObserver) continue;
+        if (mutations[i].target.__stimulusX_ignoreMutationObserver) continue;
         if (mutations[i].type === "childList") {
             mutations[i].removedNodes.forEach((node)=>{
                 if (node.nodeType !== 1) return;
                 // No need to process removed nodes that haven't been initialized by Alpine...
-                if (!node._stimulus_x_marker) return;
+                if (!node.__stimulusX_marker) return;
                 removedNodes.add(node);
             });
             mutations[i].addedNodes.forEach((node)=>{
@@ -228,7 +224,7 @@ function $c6f8b3abaeac122e$var$onMutate(mutations) {
                     return;
                 }
                 // If the node has already been initialized, we'll leave it alone...
-                if (node._stimulus_x_marker) return;
+                if (node.__stimulusX_marker) return;
                 addedNodes.push(node);
             });
         }
@@ -267,7 +263,7 @@ function $c6f8b3abaeac122e$var$onMutate(mutations) {
     // There are two special scenarios we need to account for when using the mutation
     // observer to init and destroy elements. First, when a node is "moved" on the page,
     // it's registered as both an "add" and a "remove", so we want to skip those.
-    // (This is handled above by the ._stimulus_x_marker conditionals...)
+    // (This is handled above by the .__stimulusX_marker conditionals...)
     // Second, when a node is "wrapped", it gets registered as a "removal" and the wrapper
     // as an "addition". We don't want to remove, then re-initialize the node, so we look
     // and see if it's inside any added nodes (wrappers) and skip it.
@@ -445,9 +441,9 @@ function $fb4fefc02c80dc70$var$rootElements() {
 function $fb4fefc02c80dc70$var$initTree(el, application) {
     (0, $695a1f9e83b71f7c$export$3d81bdeca067fd2d)(()=>{
         $fb4fefc02c80dc70$var$walk(el, (el)=>{
-            if (el._stimulus_x_marker) return;
+            if (el.__stimulusX_marker) return;
             (0, $695a1f9e83b71f7c$export$90a684c00f3df6ed)(el, el.attributes).forEach((handle)=>handle(application));
-            el._stimulus_x_marker = $fb4fefc02c80dc70$var$markerCount++;
+            el.__stimulusX_marker = $fb4fefc02c80dc70$var$markerCount++;
         });
     });
 }
@@ -455,7 +451,7 @@ function $fb4fefc02c80dc70$var$destroyTree(root) {
     $fb4fefc02c80dc70$var$walk(root, (el)=>{
         (0, $c6f8b3abaeac122e$export$21fc366069a4f56f)(el);
         (0, $c6f8b3abaeac122e$export$2c8bfe603cc113da)(el);
-        delete el._stimulus_x_marker;
+        delete el.__stimulusX_marker;
     });
 }
 function $fb4fefc02c80dc70$var$walk(el, callback) {
@@ -618,4 +614,4 @@ var $cf838c15c8b009ba$export$2e2bcd8739ae039 = (0, $fb4fefc02c80dc70$export$2e2b
 
 
 export {$cf838c15c8b009ba$export$2e2bcd8739ae039 as default, $fb4fefc02c80dc70$export$2e2bcd8739ae039 as StimulusX, $eae25d6e66596517$export$bdd553fddd433dcb as nextTick};
-//# sourceMappingURL=main.mjs.map
+//# sourceMappingURL=main.js.map

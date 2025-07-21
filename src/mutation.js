@@ -14,8 +14,8 @@ export function onElAdded(callback) {
 
 export function onElRemoved(el, callback) {
   if (typeof callback === "function") {
-    if (!el._stimulus_x_cleanups) el._stimulus_x_cleanups = [];
-    el._stimulus_x_cleanups.push(callback);
+    if (!el.__stimulusX_cleanups) el.__stimulusX_cleanups = [];
+    el.__stimulusX_cleanups.push(callback);
   } else {
     callback = el;
     onElRemoveds.push(callback);
@@ -27,10 +27,10 @@ export function onAttributesAdded(callback) {
 }
 
 export function onAttributeRemoved(el, name, callback) {
-  if (!el._stimulus_x_attributeCleanups) el._stimulus_x_attributeCleanups = {};
-  if (!el._stimulus_x_attributeCleanups[name]) el._stimulus_x_attributeCleanups[name] = [];
+  if (!el.__stimulusX_attributeCleanups) el.__stimulusX_attributeCleanups = {};
+  if (!el.__stimulusX_attributeCleanups[name]) el.__stimulusX_attributeCleanups[name] = [];
 
-  el._stimulus_x_attributeCleanups[name].push(callback);
+  el.__stimulusX_attributeCleanups[name].push(callback);
 }
 
 export function onValueAttributeChanged(callback) {
@@ -38,13 +38,13 @@ export function onValueAttributeChanged(callback) {
 }
 
 export function cleanupAttributes(el, names) {
-  if (!el._stimulus_x_attributeCleanups) return;
+  if (!el.__stimulusX_attributeCleanups) return;
 
-  Object.entries(el._stimulus_x_attributeCleanups).forEach(([name, value]) => {
+  Object.entries(el.__stimulusX_attributeCleanups).forEach(([name, value]) => {
     if (names === undefined || names.includes(name)) {
       value.forEach((i) => i());
 
-      delete el._stimulus_x_attributeCleanups[name];
+      delete el.__stimulusX_attributeCleanups[name];
     }
   });
 }
@@ -52,7 +52,7 @@ export function cleanupAttributes(el, names) {
 export function cleanupElement(el) {
   el._x_effects?.forEach(dequeueJob);
 
-  while (el._stimulus_x_cleanups?.length) el._stimulus_x_cleanups.pop()();
+  while (el.__stimulusX_cleanups?.length) el.__stimulusX_cleanups.pop()();
 }
 
 export function startObservingMutations() {
@@ -131,14 +131,14 @@ function onMutate(mutations) {
   let removedAttributes = new Map();
 
   for (let i = 0; i < mutations.length; i++) {
-    if (mutations[i].target._stimulus_x_ignoreMutationObserver) continue;
+    if (mutations[i].target.__stimulusX_ignoreMutationObserver) continue;
 
     if (mutations[i].type === "childList") {
       mutations[i].removedNodes.forEach((node) => {
         if (node.nodeType !== 1) return;
 
         // No need to process removed nodes that haven't been initialized by Alpine...
-        if (!node._stimulus_x_marker) return;
+        if (!node.__stimulusX_marker) return;
 
         removedNodes.add(node);
       });
@@ -154,7 +154,7 @@ function onMutate(mutations) {
         }
 
         // If the node has already been initialized, we'll leave it alone...
-        if (node._stimulus_x_marker) return;
+        if (node.__stimulusX_marker) return;
 
         addedNodes.push(node);
       });
@@ -206,7 +206,7 @@ function onMutate(mutations) {
   // There are two special scenarios we need to account for when using the mutation
   // observer to init and destroy elements. First, when a node is "moved" on the page,
   // it's registered as both an "add" and a "remove", so we want to skip those.
-  // (This is handled above by the ._stimulus_x_marker conditionals...)
+  // (This is handled above by the .__stimulusX_marker conditionals...)
   // Second, when a node is "wrapped", it gets registered as a "removal" and the wrapper
   // as an "addition". We don't want to remove, then re-initialize the node, so we look
   // and see if it's inside any added nodes (wrappers) and skip it.

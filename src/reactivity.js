@@ -12,16 +12,16 @@ export function elementBoundEffect(el) {
   let wrappedEffect = (callback) => {
     let effectReference = effect(callback);
 
-    if (!el._stimulus_x_effects) {
-      el._stimulus_x_effects = new Set();
+    if (!el.__stimulusX_effects) {
+      el.__stimulusX_effects = new Set();
     }
 
-    el._stimulus_x_effects.add(effectReference);
+    el.__stimulusX_effects.add(effectReference);
 
     cleanup = () => {
       if (effectReference === undefined) return;
 
-      el._stimulus_x_effects.delete(effectReference);
+      el.__stimulusX_effects.delete(effectReference);
 
       release(effectReference);
     };
