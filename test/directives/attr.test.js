@@ -11,24 +11,26 @@ beforeAll(async () => {
 afterAll(() => context.reset());
 
 describe("string attributes", async () => {
-  class StringAttributesController extends Controller {
-    static values = {
-      string: {
-        type: String,
-        default: "the string default value",
-      },
-      emptyString: {
-        type: String,
-        default: "",
-      },
-      anotherString: {
-        type: String,
-        default: "another string value",
-      },
-    };
-  }
-
-  beforeAll(() => context.subject(StringAttributesController));
+  beforeAll(() =>
+    context.subject(
+      class extends Controller {
+        static values = {
+          string: {
+            type: String,
+            default: "the string default value",
+          },
+          emptyString: {
+            type: String,
+            default: "",
+          },
+          anotherString: {
+            type: String,
+            default: "another string value",
+          },
+        };
+      }
+    )
+  );
 
   test("applies the default value from controller", async () => {
     const { getTestElement, subjectController } = await context.html(`
@@ -109,13 +111,15 @@ describe("string attributes", async () => {
 });
 
 describe("boolean attributes", async () => {
-  class BooleanAttributesController extends Controller {
-    static values = {
-      boolean: Boolean,
-    };
-  }
-
-  beforeAll(() => context.subject(BooleanAttributesController));
+  beforeAll(() =>
+    context.subject(
+      class extends Controller {
+        static values = {
+          boolean: Boolean,
+        };
+      }
+    )
+  );
 
   test("adds or removes the attribute from the element", async () => {
     const { getTestElement, subjectController } = await context.html(`

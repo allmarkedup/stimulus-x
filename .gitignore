@@ -4,3 +4,4 @@
 .wip
 /demo
 /dist/demo.*
+*.code-workspace
