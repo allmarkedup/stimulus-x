@@ -1,5 +1,5 @@
 import { Controller } from "@hotwired/stimulus";
-import userEvent from "@testing-library/user-event";
+
 import { createTestContext } from "../support/test-context";
 
 let context;
@@ -91,10 +91,34 @@ describe("string attributes", async () => {
     expect(element).toHaveAttribute("data-output", "and another new value");
   });
 
-  test("multiple attribute bindings", async () => {
+  test("multiple attribute bindings (single line)", async () => {
     const { getTestElement, subjectController } = await context.html(`
       <div data-controller="subject">
         <div data-bind-attr="data-string-1~subject#stringValue data-string-2~subject#anotherStringValue" data-test-element="target"></div>
+      </div>
+    `);
+    const element = getTestElement("target");
+
+    expect(element).toHaveAttribute("data-string-1", subjectController.stringValue);
+    expect(element).toHaveAttribute("data-string-2", subjectController.anotherStringValue);
+
+    subjectController.stringValue = "foo";
+    subjectController.anotherStringValue = "bar";
+
+    expect(element).toHaveAttribute("data-string-1", "foo");
+    expect(element).toHaveAttribute("data-string-2", "bar");
+  });
+
+  test("multiple attribute bindings (multi-line)", async () => {
+    const { getTestElement, subjectController } = await context.html(`
+      <div data-controller="subject">
+        <div
+          data-bind-attr="
+            data-string-1~subject#stringValue
+            data-string-2~subject#anotherStringValue
+          "
+          data-test-element="target"
+        ></div>
       </div>
     `);
     const element = getTestElement("target");
@@ -137,5 +161,106 @@ describe("boolean attributes", async () => {
 
     subjectController.booleanValue = false;
     expect(summary).not.toHaveAttribute("open");
+  });
+});
+
+describe("classes", async () => {
+  beforeAll(() =>
+    context.subject(
+      class extends Controller {
+        static values = {
+          theme: {
+            type: String,
+            default: "light",
+          },
+        };
+
+        get themeStylesAsObject() {
+          return {
+            "text-gray-900 bg-white": this.themeValue == "light",
+            "text-white bg-gray-900": this.themeValue == "dark",
+          };
+        }
+
+        get themeStylesAsArray() {
+          switch (this.themeValue) {
+            case "light":
+              return ["text-gray-900", "bg-white"];
+
+            case "dark":
+              return ["text-white", "bg-gray-900"];
+          }
+        }
+
+        get themeStylesAsString() {
+          switch (this.themeValue) {
+            case "light":
+              return "text-gray-900 bg-white";
+
+            case "dark":
+              return "text-white bg-gray-900";
+          }
+        }
+      }
+    )
+  );
+
+  test("can resolve class objects", async () => {
+    const { getTestElement, subjectController } = await context.html(`
+      <div data-controller="subject">
+        <span data-bind-attr="class~subject#themeStylesAsObject" data-test-element="target"></span>
+      </div>
+    `);
+    const target = getTestElement("target");
+
+    expect(target).toHaveClass("text-gray-900 bg-white", { exact: true });
+
+    subjectController.themeValue = "dark";
+    expect(target).toHaveClass("text-white bg-gray-900", { exact: true });
+  });
+
+  test("can resolve class arrays", async () => {
+    const { getTestElement, subjectController } = await context.html(`
+      <div data-controller="subject">
+        <span data-bind-attr="class~subject#themeStylesAsArray" data-test-element="target"></span>
+      </div>
+    `);
+    const target = getTestElement("target");
+
+    expect(target).toHaveClass("text-gray-900 bg-white", { exact: true });
+
+    subjectController.themeValue = "dark";
+    expect(target).toHaveClass("text-white bg-gray-900", { exact: true });
+  });
+
+  test("can resolve class strings", async () => {
+    const { getTestElement, subjectController } = await context.html(`
+      <div data-controller="subject">
+        <span data-bind-attr="class~subject#themeStylesAsString" data-test-element="target"></span>
+      </div>
+    `);
+    const target = getTestElement("target");
+
+    expect(target).toHaveClass("text-gray-900 bg-white", { exact: true });
+
+    subjectController.themeValue = "dark";
+    expect(target).toHaveClass("text-white bg-gray-900", { exact: true });
+  });
+
+  test("doesn't overwrite existing classes", async () => {
+    const { getTestElement, subjectController } = await context.html(`
+      <div data-controller="subject">
+        <span class="border-hotpink" data-bind-attr="class~subject#themeStylesAsString" data-test-element="target"></span>
+      </div>
+    `);
+    const target = getTestElement("target");
+
+    expect(target).toHaveClass("border-hotpink text-gray-900 bg-white", { exact: true });
+
+    subjectController.themeValue = "dark";
+    expect(target).toHaveClass("border-hotpink text-white bg-gray-900", { exact: true });
+
+    subjectController.themeValue = "unknown";
+    expect(target).toHaveClass("border-hotpink", { exact: true });
   });
 });

@@ -1,6 +1,6 @@
 import { directive } from "../directives";
 import { mutateDom } from "../mutation";
-import { bind } from "../bind";
+import { bind } from "../attributes";
 
 directive("attr", (el, { property, subject, modifiers }, { effect, evaluate, modify }) => {
   effect(() => {

@@ -112,7 +112,7 @@ function toParsedDirectives({ name, value }) {
   const type = name.match(matchedAttributeRegex())[1];
   const bindingExpressions = value
     .trim()
-    .split(" ")
+    .split(/\s+/)
     .filter((e) => e);
 
   return bindingExpressions.map((bindingExpression) => {
