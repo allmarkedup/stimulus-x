@@ -13,14 +13,8 @@
     "url": "git+ssh://git@github.com/allmarkedup/stimulus-x.git"
   },
   "source": "src/index.js",
-  "module": "dist/stimulus-x.esm.js",
-  "main": "dist/stimulus-x.cjs.js",
-  "targets": {
-    "module": {
-      "includeNodeModules": true
-    },
-    "main": {}
-  },
+  "main": "dist/stimulus-x.js",
+  "type": "module",
   "keywords": [
     "stimulus",
     "stimulusjs",
