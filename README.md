@@ -1,62 +1,43 @@
-# StimulusX
+<center>
+
+# StimulusX 
+
+**⚡️ Reactivity engine for Stimulus controllers ⚡️**
 
 ![NPM Version](https://img.shields.io/npm/v/stimulus-x)
  [![CI](https://github.com/allmarkedup/stimulus-x/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/allmarkedup/stimulus-x/actions/workflows/ci.yml)
 
-StimulusX brings the power of **reactive DOM bindings** to [Stimulus](https://stimulus.hotwired.dev) 
-controllers.
-
-
-> [!WARNING]
-> This project is very new and has not been heavily battle-tested yet! **Use it with caution.**
+</center>
 
 ---
 
-### 🙋 What are 'reactive DOM bindings'?
+_StimulusX_ brings the power of **reactive programming** to [Stimulus](https://stimulus.hotwired.dev), greatly reducing the need for tedious DOM manipulation code and making your controllers cleaner, leaner and easier to understand.
 
-Good question! Bindings&hellip;
+Features include:
 
-* &hellip;connect **DOM attributes** (and/or element content) to **Stimulus controller properties** using `data-bind-*` attributes.
-* &hellip;are **reactive**, meaning DOM attributes/elements will be **automagically kept in sync** with the value of the properties they are bound to.
-* &hellip;are conceptually similar to Stimulus [actions](https://stimulus.hotwired.dev/reference/actions) - but with the  connection between DOM and controller reversed.
-  * _`actions` = **DOM changes &rarr; controller**_
-  * _`bindings` = **controller changes &rarr; DOM**_
-* &hellip;clean up your controllers by **greatly reducing (or even eliminating)** the need for lots of **boring, repetitive DOM manipulation code** everywhere. Woohoo! 🥳
+#### ⚡️ Live DOM bindings ⚡️ 
 
-### 🚀 Bindings in action
+* Connect **HTML attributes** (and content) to **controller properties** using `data-bind-*` attributes
+* _Reactive_ bindings - so DOM attributes/elements will be **automagically kept in sync** with the value of the properties they are bound to
+* Uses a declarative syntax based on Stimulus [action descriptors](https://stimulus.hotwired.dev/reference/actions)
 
-In the example below:
+#### ⚡️ Property watchers ⚡️
 
-1. the progress element's `value` attribute is bound to the value of controller's `progressValue` property: `data-bind-attr="value~loader#progressValue"`
-2. the `textContent` of the status label element is bound to the value of controller's `status` property: `data-bind-text="loader#status"`.
+* **Watch any controller property** for changes
+* `[name]PropertyChanged` callback methods for all watched properties
 
-```js
-<figure data-controller="loader">
-  <progress data-bind-attr="value~loader#progressValue" max="100"></progress> <!-- [1] -->
-  <p>Status: <strong data-bind-text="loader#status"></strong></p> <!-- [2] -->
-</figure>
-```
+#### ⚡️ Extensibility ⚡️
 
-```js
-// controllers/loader_controller.js
-import { Controller } from "@hotwired/stimulus"
+* Straighforward **extension API**
+* Add custom **modifiers** and **directives**
 
-export default class extends Controller {
-  static values = {
-    progress: Number
-  }
-  
-  get status(){
-    return this.progressValue === 100 ? "finished" : "loading";
-  }
-}
-```
+---
 
-* Any changes to the `loader#progressValue` property (perhaps via an [action](https://stimulus.hotwired.dev/reference/actions)) will **trigger an update** to the progress bar `value` attribute in the DOM.
-* Once progress gets to `100` the status displayed in the DOM will be updated to `"finished"` to match the value of the `loader#status` property.
-* All DOM updates happen automatically whenever a property (or a computed value) changes. In this example that means taht there there is no need for any direct DOM manipulation code in the controller at all.
+> [!WARNING]
+> _This project is very new. The API may still change and it has not been throughly battle-tested yet. Use with caution!_ 
 
 ## Installation
+
 
 Add the `stimulus-x` package to your `package.json`:
 
@@ -74,5 +55,111 @@ yarn add stimulus-x
 
 ## Usage
 
-_Docs coming soon&hellip;_
+StimulusX hooks into your Stimulus application instance via the `StimulusX.extend` method:
 
+```js
+import { Application, Controller } from "@hotwired/stimulus";
+import StimulusX from "stimulus-x";
+
+window.Stimulus = Application.start();
+StimulusX.extend(window.Stimulus);
+
+window.Stimulus.register("example", ExampleController);
+
+// ...
+```
+
+> [!IMPORTANT]
+> You must call the `StimulusX.extend` method _before_ registering any controllers or they will not be made reactive.
+
+Controllers are created as usual, but they can now make use of StimulusX's reactive features - including [attribute bindings](#️-attribute-bindings) (e.g. class names, `data-` and `aria-` attributes, `hidden` etc), **text content bindings** and **HTML bindings**.
+
+```js
+// controllers/loader_controller.js
+import { Controller } from "@hotwired/stimulus"
+
+export default class extends Controller {
+  static values = {
+    progress: Number
+  }
+  
+  get status(){
+    return this.progressValue === 100 ? "finished" : "loading";
+  }
+}
+```
+
+```html
+<div data-controller="loader">
+  <progress data-bind-attr="value~loader#progressValue" max="100"></progress>
+  <p>Status: <strong data-bind-text="loader#status"></strong></p>
+</div>
+```
+
+## ⚡️ HTML attribute bindings ⚡️ 
+
+Attribute bindings connect **HTML attribute values** to **controller properties**.
+
+They are specified declaratively in your HTML using `data-bind-attr` attributes and use a similar syntax to Stimulus [action descriptors](https://stimulus.hotwired.dev/reference/actions#descriptors).
+
+```html
+<div data-controller="lightbox">
+  <img data-bind-attr="src~lightbox#srcValue">
+</div>
+```
+
+```js
+class LightboxController extends Controller {
+  static values = {
+    src: {
+      type: String,
+      default: "https://placeholder.com/kittens.jpg"
+    }
+  }
+}
+```
+
+In the example above, the image `src` attribute will initially be set to the default value of the `srcValue` property (i.e. `https://placeholder.com/kittens.jpg`).
+
+Whenever the `srcValue` property is changed, the image `src` attribute value in the DOM will be automatically updated to reflect the new value.
+
+```js
+this.srcValue = "https://kittens.com/daily-kitten.jpg"
+
+// <img src="https://kittens.com/daily-kitten.jpg">
+```
+
+### Descriptors
+
+The `data-bind-attr` value `src~lightbox#srcValue` is called a _binding descriptor_. In this descriptor:
+
+* `src` is the DOM attribute to be updated
+* `lightbox` is the controller identifier
+* `srcValue` is the name of the property that the attribute value should be bound to
+
+> [!TIP]
+> In this example the `src` attribute is bound to a Stimulus [Value property accessor](https://stimulus.hotwired.dev/reference/values) property (`lightbox#srcValue`). But it doesn't need to be - you can bind to any (public) controller property that you like!
+
+### Binding class names 
+
+> _Docs coming soon&hellip;_
+
+### Boolean attributes
+
+> _Docs coming soon&hellip;_
+
+### Using modifiers
+
+> _Docs coming soon&hellip;_
+
+## ⚡️ Text content bindings ⚡️
+
+> _Docs coming soon&hellip;_
+
+## ⚡️ HTML bindings ⚡️
+
+> _Docs coming soon&hellip;_
+
+## ⚡️ Watching properties ⚡️
+
+> _Docs coming soon&hellip;_
