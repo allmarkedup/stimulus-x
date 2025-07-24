@@ -1,6 +1,32 @@
 import {effect as $5OpyM$effect, stop as $5OpyM$stop, reactive as $5OpyM$reactive} from "@vue/reactivity";
 import {getProperty as $5OpyM$getProperty} from "dot-prop";
 
+const $e46f4b33a7e1fc07$var$modifierHandlers = [];
+function $e46f4b33a7e1fc07$export$cd4b50bb4e5c05a3(name, handler) {
+    $e46f4b33a7e1fc07$var$modifierHandlers.push({
+        name: name,
+        handler: handler
+    });
+}
+function $e46f4b33a7e1fc07$export$f1696300e8775372(value, modifiers = []) {
+    return modifiers.reduce((value, modifier)=>{
+        if ($e46f4b33a7e1fc07$var$modifierExists(modifier)) return $e46f4b33a7e1fc07$var$applyModifier(modifier, value);
+        else {
+            console.error(`Unknown modifier '${modifier}'`);
+            return value;
+        }
+    }, value);
+}
+function $e46f4b33a7e1fc07$var$applyModifier(name, value) {
+    return $e46f4b33a7e1fc07$var$getModifier(name).handler(value);
+}
+function $e46f4b33a7e1fc07$var$modifierExists(name) {
+    return !!$e46f4b33a7e1fc07$var$getModifier(name);
+}
+function $e46f4b33a7e1fc07$var$getModifier(name) {
+    return $e46f4b33a7e1fc07$var$modifierHandlers.find((modifier)=>modifier.name === name);
+}
+
 
 let $eae25d6e66596517$var$flushPending = false;
 let $eae25d6e66596517$var$flushing = false;
@@ -56,60 +82,6 @@ function $eae25d6e66596517$export$d80ec80fb4bee1e6() {
 function $eae25d6e66596517$export$e9a53d8785d6cfc9() {
     $eae25d6e66596517$var$isHolding = true;
 }
-
-
-const $3ee5a2b2e05cc741$export$dc573d8a6576cdb3 = (callback)=>(0, $5OpyM$effect)(callback, {
-        scheduler: (0, $eae25d6e66596517$export$d30788f2c20241cd)((task)=>task)
-    });
-function $3ee5a2b2e05cc741$export$1ecd3170301acce1(el) {
-    let cleanup = ()=>{};
-    let wrappedEffect = (callback)=>{
-        let effectReference = $3ee5a2b2e05cc741$export$dc573d8a6576cdb3(callback);
-        if (!el.__stimulusX_effects) el.__stimulusX_effects = new Set();
-        el.__stimulusX_effects.add(effectReference);
-        cleanup = ()=>{
-            if (effectReference === undefined) return;
-            el.__stimulusX_effects.delete(effectReference);
-            (0, $5OpyM$stop)(effectReference);
-        };
-        return effectReference;
-    };
-    return [
-        wrappedEffect,
-        ()=>{
-            cleanup();
-        }
-    ];
-}
-
-
-const $e46f4b33a7e1fc07$var$modifierHandlers = [];
-function $e46f4b33a7e1fc07$export$cd4b50bb4e5c05a3(name, handler) {
-    $e46f4b33a7e1fc07$var$modifierHandlers.push({
-        name: name,
-        handler: handler
-    });
-}
-function $e46f4b33a7e1fc07$export$f1696300e8775372(value, modifiers = []) {
-    return modifiers.reduce((value, modifier)=>{
-        if ($e46f4b33a7e1fc07$var$modifierExists(modifier)) return $e46f4b33a7e1fc07$var$applyModifier(modifier, value);
-        else {
-            console.error(`Unknown modifier '${modifier}'`);
-            return value;
-        }
-    }, value);
-}
-function $e46f4b33a7e1fc07$var$applyModifier(name, value) {
-    return $e46f4b33a7e1fc07$var$getModifier(name).handler(value);
-}
-function $e46f4b33a7e1fc07$var$modifierExists(name) {
-    return !!$e46f4b33a7e1fc07$var$getModifier(name);
-}
-function $e46f4b33a7e1fc07$var$getModifier(name) {
-    return $e46f4b33a7e1fc07$var$modifierHandlers.find((modifier)=>modifier.name === name);
-}
-
-
 
 
 let $c6f8b3abaeac122e$var$onAttributeAddeds = [];
@@ -285,6 +257,112 @@ function $c6f8b3abaeac122e$var$onMutate(mutations) {
 
 
 
+const $3ee5a2b2e05cc741$export$dc573d8a6576cdb3 = (callback)=>(0, $5OpyM$effect)(callback, {
+        scheduler: (0, $eae25d6e66596517$export$d30788f2c20241cd)((task)=>task)
+    });
+function $3ee5a2b2e05cc741$export$1ecd3170301acce1(el) {
+    let cleanup = ()=>{};
+    let wrappedEffect = (callback)=>{
+        let effectReference = $3ee5a2b2e05cc741$export$dc573d8a6576cdb3(callback);
+        if (!el.__stimulusX_effects) el.__stimulusX_effects = new Set();
+        el.__stimulusX_effects.add(effectReference);
+        cleanup = ()=>{
+            if (effectReference === undefined) return;
+            el.__stimulusX_effects.delete(effectReference);
+            (0, $5OpyM$stop)(effectReference);
+        };
+        return effectReference;
+    };
+    return [
+        wrappedEffect,
+        ()=>{
+            cleanup();
+        }
+    ];
+}
+function $3ee5a2b2e05cc741$export$3db5d71bdb2d5499(getter, callback) {
+    let firstTime = true;
+    let oldValue;
+    let effectReference = $3ee5a2b2e05cc741$export$dc573d8a6576cdb3(()=>{
+        let value = getter();
+        // JSON.stringify touches every single property at any level enabling deep watching
+        JSON.stringify(value);
+        if (!firstTime) // We have to queue this watcher as a microtask so that
+        // the watcher doesn't pick up its own dependencies.
+        queueMicrotask(()=>{
+            callback(value, oldValue);
+            oldValue = value;
+        });
+        else oldValue = value;
+        firstTime = false;
+    });
+    return ()=>(0, $5OpyM$stop)(effectReference);
+}
+
+
+
+
+
+
+function $61c34dda51f70fa1$export$d56142fa17014959(ControllerClass) {
+    return class extends ControllerClass {
+        constructor(context){
+            super(context);
+            // Override the attribute setter so that our mutation observer doesn't pick up on changes
+            // that are also already being handled directly by Stimulus.
+            const setData = this.data.set;
+            this.data.set = (key, value)=>{
+                (0, $c6f8b3abaeac122e$export$c98382a3d82f9519)(()=>setData.call(this.data, key, value));
+            };
+            // Create a reactive controller object
+            const self = (0, $3ee5a2b2e05cc741$re_export$reactive)(this);
+            // Initialize watched property callbacks
+            const watchedProps = this.constructor.watch || [];
+            watchedProps.forEach((prop)=>$61c34dda51f70fa1$export$dcc3676fc96ef4c(self, prop));
+            // Return the reactive controller instance
+            return self;
+        }
+    };
+}
+function $61c34dda51f70fa1$export$6d5f0ef1727b562e(el, identifier, application) {
+    const controllerElement = el.closest(`[data-controller~="${identifier}"]`);
+    if (controllerElement) return application.getControllerForElementAndIdentifier(controllerElement, identifier);
+}
+function $61c34dda51f70fa1$export$121af9acc174ac93(controller, property) {
+    let value = (0, $5OpyM$getProperty)(controller, property);
+    if (typeof value === "function") value = value.apply(controller);
+    return value;
+}
+function $61c34dda51f70fa1$export$dcc3676fc96ef4c(controller, propertyRef) {
+    const getter = ()=>$61c34dda51f70fa1$export$121af9acc174ac93(controller, propertyRef);
+    const cleanup = (0, $3ee5a2b2e05cc741$export$3db5d71bdb2d5499)(getter, (value, oldValue)=>{
+        $61c34dda51f70fa1$var$callCallbacks(controller, propertyRef, value, oldValue, false);
+    });
+    // Run once on creation
+    $61c34dda51f70fa1$var$callCallbacks(controller, propertyRef, getter(), undefined, true);
+    const rootElement = controller.element;
+    if (!rootElement.__stimulusX_cleanups) rootElement.__stimulusX_cleanups = [];
+    rootElement.__stimulusX_cleanups.push(cleanup);
+}
+function $61c34dda51f70fa1$var$callCallbacks(controller, propertyRef, value, oldValue, initial) {
+    // Generic callback, called when _any_ watched property changes
+    if (typeof controller.watchedPropertyChanged === "function") controller.watchedPropertyChanged(propertyRef, value, oldValue, {
+        initial: initial
+    });
+    // Property-specific change callback
+    const propertyWatcherCallback = controller[`${$61c34dda51f70fa1$var$getCamelizedPropertyRef(propertyRef)}PropertyChanged`];
+    if (typeof propertyWatcherCallback === "function") propertyWatcherCallback.call(controller, value, oldValue, {
+        initial: initial
+    });
+}
+function $61c34dda51f70fa1$var$getCamelizedPropertyRef(propertyRef) {
+    return $61c34dda51f70fa1$var$camelCase(propertyRef.replace(".", " "));
+}
+function $61c34dda51f70fa1$var$camelCase(subject) {
+    return subject.toLowerCase().replace(/-(\w)/g, (match, char)=>char.toUpperCase());
+}
+
+
 let $695a1f9e83b71f7c$var$directiveHandlers = {};
 let $695a1f9e83b71f7c$var$isDeferringHandlers = false;
 let $695a1f9e83b71f7c$var$directiveHandlerStacks = new Map();
@@ -338,11 +416,11 @@ function $695a1f9e83b71f7c$export$1dd40105af141b08(el, directive) {
     let [utilities, cleanup] = $695a1f9e83b71f7c$export$a51f92c9c1609d03(el);
     (0, $c6f8b3abaeac122e$export$5d89a587b01747c6)(el, directive.attr, cleanup);
     let wrapperHandler = (application)=>{
-        let controller = $695a1f9e83b71f7c$var$getClosestController(el, directive.identifier, application);
+        let controller = (0, $61c34dda51f70fa1$export$6d5f0ef1727b562e)(el, directive.identifier, application);
         if (controller) {
             handler = handler.bind(handler, el, directive, {
                 ...utilities,
-                evaluate: $695a1f9e83b71f7c$var$evaluator(controller, el),
+                evaluate: $695a1f9e83b71f7c$var$evaluator(controller),
                 modify: (0, $e46f4b33a7e1fc07$export$f1696300e8775372)
             });
             $695a1f9e83b71f7c$var$isDeferringHandlers ? $695a1f9e83b71f7c$var$directiveHandlerStacks.get($695a1f9e83b71f7c$var$currentHandlerStackKey).push(handler) : handler();
@@ -350,12 +428,8 @@ function $695a1f9e83b71f7c$export$1dd40105af141b08(el, directive) {
     };
     return wrapperHandler;
 }
-function $695a1f9e83b71f7c$var$evaluator(controller, el) {
-    return (property)=>{
-        let value = (0, $5OpyM$getProperty)(controller, property);
-        if (typeof value === "function") value = value(el);
-        return value;
-    };
+function $695a1f9e83b71f7c$var$evaluator(controller) {
+    return (property)=>(0, $61c34dda51f70fa1$export$121af9acc174ac93)(controller, property);
 }
 function $695a1f9e83b71f7c$var$matchedAttributeRegex() {
     return new RegExp(`${$695a1f9e83b71f7c$var$attributePrefix}(${Object.keys($695a1f9e83b71f7c$var$directiveHandlers).join("|")})$`);
@@ -390,79 +464,69 @@ function $695a1f9e83b71f7c$var$toParsedDirectives({ name: name, value: value }) 
         };
     });
 }
-function $695a1f9e83b71f7c$var$getClosestController(el, identifier, application) {
-    const controllerElement = el.closest(`[data-controller~="${identifier}"]`);
-    if (controllerElement) return application.getControllerForElementAndIdentifier(controllerElement, identifier);
+
+
+
+
+function $f3ad94c9f84f4d57$export$8a7688a96d852767(subject) {
+    return subject.replace(/:/g, "_").split("_").map((word, index)=>index === 0 ? word : word[0].toUpperCase() + word.slice(1)).join("");
+}
+function $f3ad94c9f84f4d57$export$588732934346abbf(el, callback) {
+    let skip = false;
+    callback(el, ()=>skip = true);
+    if (skip) return;
+    let node = el.firstElementChild;
+    while(node){
+        $f3ad94c9f84f4d57$export$588732934346abbf(node, callback, false);
+        node = node.nextElementSibling;
+    }
 }
 
 
 
-
+const $fb4fefc02c80dc70$var$StimulusX = {};
 let $fb4fefc02c80dc70$var$markerCount = 1;
-function $fb4fefc02c80dc70$var$extend(application) {
+$fb4fefc02c80dc70$var$StimulusX.extend = function(application) {
+    this.application = application;
     // Override controller registration to insert a reactive subclass instead of the original
     application.register = function(identifier, ControllerClass) {
-        const controllerConstructor = $fb4fefc02c80dc70$var$createReactiveControllerClass(ControllerClass);
+        const controllerConstructor = (0, $61c34dda51f70fa1$export$d56142fa17014959)(ControllerClass, application);
         application.load({
             identifier: identifier,
             controllerConstructor: controllerConstructor
         });
     };
     (0, $c6f8b3abaeac122e$export$1a5ae5db40475a2d)();
-    (0, $c6f8b3abaeac122e$export$c395e4fde41c37ff)((el)=>$fb4fefc02c80dc70$var$initTree(el, application));
+    (0, $c6f8b3abaeac122e$export$c395e4fde41c37ff)((el)=>$fb4fefc02c80dc70$var$initTree(el));
     (0, $c6f8b3abaeac122e$export$bb8862ef847f5ec0)((el)=>$fb4fefc02c80dc70$var$destroyTree(el));
     (0, $c6f8b3abaeac122e$export$545f7104b1510552)((el, attrs)=>{
-        $fb4fefc02c80dc70$var$handleValueAttributes(el, attrs, application);
-        (0, $695a1f9e83b71f7c$export$90a684c00f3df6ed)(el, attrs).forEach((handle)=>handle(application));
+        $fb4fefc02c80dc70$var$handleValueAttributes(el, attrs);
+        (0, $695a1f9e83b71f7c$export$90a684c00f3df6ed)(el, attrs).forEach((handle)=>handle($fb4fefc02c80dc70$var$StimulusX.application));
     });
     (0, $eae25d6e66596517$export$bdd553fddd433dcb)(()=>{
-        $fb4fefc02c80dc70$var$rootElements().forEach((el)=>$fb4fefc02c80dc70$var$initTree(el, application));
+        $fb4fefc02c80dc70$var$rootElements().forEach((el)=>$fb4fefc02c80dc70$var$initTree(el));
     });
-}
-function $fb4fefc02c80dc70$var$createReactiveControllerClass(ControllerClass) {
-    return class extends ControllerClass {
-        constructor(context){
-            super(context);
-            // Override the attribute setter so that our
-            // mutation observer doesn't pick up on changes
-            // that are already being handled directly by Stimulus.
-            const setData = this.data.set;
-            this.data.set = (key, value)=>{
-                (0, $c6f8b3abaeac122e$export$c98382a3d82f9519)(()=>setData.call(this.data, key, value));
-            };
-            // Return a reactive version of the controller instance
-            return (0, $3ee5a2b2e05cc741$re_export$reactive)(this);
-        }
-    };
-}
+};
+$fb4fefc02c80dc70$var$StimulusX.modifier = (0, $e46f4b33a7e1fc07$export$cd4b50bb4e5c05a3);
+$fb4fefc02c80dc70$var$StimulusX.directive = (0, $695a1f9e83b71f7c$export$99b43ad1ed32e735);
 function $fb4fefc02c80dc70$var$rootElements() {
     return Array.from(document.querySelectorAll("[data-controller]:not([data-controller] [data-controller])"));
 }
-function $fb4fefc02c80dc70$var$initTree(el, application) {
+function $fb4fefc02c80dc70$var$initTree(el) {
     (0, $695a1f9e83b71f7c$export$3d81bdeca067fd2d)(()=>{
-        $fb4fefc02c80dc70$var$walk(el, (el)=>{
+        (0, $f3ad94c9f84f4d57$export$588732934346abbf)(el, (el)=>{
             if (el.__stimulusX_marker) return;
-            (0, $695a1f9e83b71f7c$export$90a684c00f3df6ed)(el, el.attributes).forEach((handle)=>handle(application));
+            (0, $695a1f9e83b71f7c$export$90a684c00f3df6ed)(el, el.attributes).forEach((handle)=>handle($fb4fefc02c80dc70$var$StimulusX.application));
             el.__stimulusX_marker = $fb4fefc02c80dc70$var$markerCount++;
         });
     });
 }
 function $fb4fefc02c80dc70$var$destroyTree(root) {
-    $fb4fefc02c80dc70$var$walk(root, (el)=>{
+    (0, $f3ad94c9f84f4d57$export$588732934346abbf)(root, (el)=>{
         (0, $c6f8b3abaeac122e$export$21fc366069a4f56f)(el);
         (0, $c6f8b3abaeac122e$export$2c8bfe603cc113da)(el);
         delete el.__stimulusX_marker;
     });
-}
-function $fb4fefc02c80dc70$var$walk(el, callback) {
-    let skip = false;
-    callback(el, ()=>skip = true);
-    if (skip) return;
-    let node = el.firstElementChild;
-    while(node){
-        $fb4fefc02c80dc70$var$walk(node, callback, false);
-        node = node.nextElementSibling;
-    }
 }
 // Changes to controller value attributes in the DOM do not call
 // any properties on the controller so changes are not detected.
@@ -486,11 +550,7 @@ function $fb4fefc02c80dc70$var$handleValueAttributes(el, attrs, application) {
         }
     }
 }
-var $fb4fefc02c80dc70$export$2e2bcd8739ae039 = {
-    extend: $fb4fefc02c80dc70$var$extend,
-    modifier: $e46f4b33a7e1fc07$export$cd4b50bb4e5c05a3,
-    directive: $695a1f9e83b71f7c$export$99b43ad1ed32e735
-};
+var $fb4fefc02c80dc70$export$2e2bcd8739ae039 = $fb4fefc02c80dc70$var$StimulusX;
 
 
 

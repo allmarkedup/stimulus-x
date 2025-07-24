@@ -1,7 +1,8 @@
-import { reactive } from "./reactivity";
 import { modifier } from "./modifiers";
 import { directive } from "./directives";
-import { queueJob, nextTick } from "./scheduler";
+import { nextTick } from "./scheduler";
+import { createReactiveControllerClass } from "./controller";
+import { walk } from "./utils";
 import {
   startObservingMutations,
   onAttributesAdded,
@@ -13,12 +14,15 @@ import {
 } from "./mutation";
 import { deferHandlingDirectives, directives } from "./directives";
 
+const StimulusX = {};
 let markerCount = 1;
 
-function extend(application) {
+StimulusX.extend = function (application) {
+  this.application = application;
+
   // Override controller registration to insert a reactive subclass instead of the original
   application.register = function (identifier, ControllerClass) {
-    const controllerConstructor = createReactiveControllerClass(ControllerClass);
+    const controllerConstructor = createReactiveControllerClass(ControllerClass, application);
     application.load({
       identifier,
       controllerConstructor,
@@ -27,37 +31,21 @@ function extend(application) {
 
   startObservingMutations();
 
-  onElAdded((el) => initTree(el, application));
+  onElAdded((el) => initTree(el));
   onElRemoved((el) => destroyTree(el));
 
   onAttributesAdded((el, attrs) => {
-    handleValueAttributes(el, attrs, application);
-    directives(el, attrs).forEach((handle) => handle(application));
+    handleValueAttributes(el, attrs);
+    directives(el, attrs).forEach((handle) => handle(StimulusX.application));
   });
 
   nextTick(() => {
-    rootElements().forEach((el) => initTree(el, application));
+    rootElements().forEach((el) => initTree(el));
   });
-}
+};
 
-function createReactiveControllerClass(ControllerClass) {
-  return class extends ControllerClass {
-    constructor(context) {
-      super(context);
-
-      // Override the attribute setter so that our
-      // mutation observer doesn't pick up on changes
-      // that are already being handled directly by Stimulus.
-      const setData = this.data.set;
-      this.data.set = (key, value) => {
-        mutateDom(() => setData.call(this.data, key, value));
-      };
-
-      // Return a reactive version of the controller instance
-      return reactive(this);
-    }
-  };
-}
+StimulusX.modifier = modifier;
+StimulusX.directive = directive;
 
 function rootElements() {
   return Array.from(
@@ -65,12 +53,12 @@ function rootElements() {
   );
 }
 
-function initTree(el, application) {
+function initTree(el) {
   deferHandlingDirectives(() => {
     walk(el, (el) => {
       if (el.__stimulusX_marker) return;
 
-      directives(el, el.attributes).forEach((handle) => handle(application));
+      directives(el, el.attributes).forEach((handle) => handle(StimulusX.application));
 
       el.__stimulusX_marker = markerCount++;
     });
@@ -83,18 +71,6 @@ function destroyTree(root) {
     cleanupAttributes(el);
     delete el.__stimulusX_marker;
   });
-}
-
-function walk(el, callback) {
-  let skip = false;
-  callback(el, () => (skip = true));
-  if (skip) return;
-
-  let node = el.firstElementChild;
-  while (node) {
-    walk(node, callback, false);
-    node = node.nextElementSibling;
-  }
 }
 
 // Changes to controller value attributes in the DOM do not call
@@ -130,4 +106,4 @@ function handleValueAttributes(el, attrs, application) {
   }
 }
 
-export default { extend, modifier, directive };
+export default StimulusX;

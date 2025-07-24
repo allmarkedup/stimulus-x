@@ -1,7 +1,7 @@
-import { getProperty } from "dot-prop";
 import { onAttributeRemoved } from "./mutation";
 import { elementBoundEffect } from "./reactivity";
 import { applyModifiers } from "./modifiers";
+import { getClosestController, evaluateControllerProperty } from "./controller";
 
 let directiveHandlers = {};
 let isDeferringHandlers = false;
@@ -76,7 +76,7 @@ export function getDirectiveHandler(el, directive) {
     if (controller) {
       handler = handler.bind(handler, el, directive, {
         ...utilities,
-        evaluate: evaluator(controller, el),
+        evaluate: evaluator(controller),
         modify: applyModifiers,
       });
       isDeferringHandlers
@@ -90,14 +90,8 @@ export function getDirectiveHandler(el, directive) {
   return wrapperHandler;
 }
 
-function evaluator(controller, el) {
-  return (property) => {
-    let value = getProperty(controller, property);
-    if (typeof value === "function") {
-      value = value(el);
-    }
-    return value;
-  };
+function evaluator(controller) {
+  return (property) => evaluateControllerProperty(controller, property);
 }
 
 function matchedAttributeRegex() {
@@ -145,11 +139,4 @@ function toParsedDirectives({ name, value }) {
       attr: name,
     };
   });
-}
-
-function getClosestController(el, identifier, application) {
-  const controllerElement = el.closest(`[data-controller~="${identifier}"]`);
-  if (controllerElement) {
-    return application.getControllerForElementAndIdentifier(controllerElement, identifier);
-  }
 }
