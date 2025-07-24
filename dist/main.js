@@ -1,4 +1,4 @@
-import {effect as $5OpyM$effect, stop as $5OpyM$stop, reactive as $5OpyM$reactive, raw as $5OpyM$raw} from "@vue/reactivity";
+import {effect as $5OpyM$effect, stop as $5OpyM$stop, reactive as $5OpyM$reactive} from "@vue/reactivity";
 import {getProperty as $5OpyM$getProperty} from "dot-prop";
 
 
@@ -365,7 +365,7 @@ function $695a1f9e83b71f7c$var$isDirectiveAttribute({ name: name }) {
 }
 function $695a1f9e83b71f7c$var$toParsedDirectives({ name: name, value: value }) {
     const type = name.match($695a1f9e83b71f7c$var$matchedAttributeRegex())[1];
-    const bindingExpressions = value.trim().split(" ").filter((e)=>e);
+    const bindingExpressions = value.trim().split(/\s+/).filter((e)=>e);
     return bindingExpressions.map((bindingExpression)=>{
         const subjectMatch = bindingExpression.match(/^([a-zA-Z0-9\-_]+)~/);
         const subject = subjectMatch ? subjectMatch[1] : null;
@@ -508,50 +508,45 @@ var $fb4fefc02c80dc70$export$2e2bcd8739ae039 = {
 
 
 
-function $e244f1b8e144127e$export$2385a24977818dd0(element, name, value) {
-    switch(name){
-        // case "class":
-        //   bindClasses(element, value);
-        //   break;
-        case "checked":
-        case "selected":
-            $e244f1b8e144127e$var$bindAttributeAndProperty(element, name, value);
-            break;
-        default:
-            $e244f1b8e144127e$var$bindAttribute(element, name, value);
-            break;
-    }
+function $bf07eb3c6349a827$export$2706f8d45625eda6(el, value) {
+    if (Array.isArray(value)) return $bf07eb3c6349a827$var$setClassesFromString(el, value.join(" "));
+    else if (typeof value === "object" && value !== null) return $bf07eb3c6349a827$var$setClassesFromObject(el, value);
+    return $bf07eb3c6349a827$var$setClassesFromString(el, value);
 }
-// function bindClasses(element, value) {
-//   if (element.__value_bindings_undo_classes) element.__value_bindings_undo_classes();
-//   element.__value_bindings_undo_classes = setClasses(element, value);
-// }
-function $e244f1b8e144127e$var$bindAttribute(el, name, value) {
-    if ([
-        null,
-        undefined,
-        false
-    ].includes(value) && $e244f1b8e144127e$var$attributeShouldntBePreservedIfFalsy(name)) el.removeAttribute(name);
-    else {
-        if ($e244f1b8e144127e$var$isBooleanAttr(name)) value = name;
-        $e244f1b8e144127e$var$setIfChanged(el, name, value);
-    }
+function $bf07eb3c6349a827$var$setClassesFromString(el, classString) {
+    classString = classString || "";
+    let missingClasses = (classString)=>classString.split(" ").filter((i)=>!el.classList.contains(i)).filter(Boolean);
+    let classes = missingClasses(classString);
+    el.classList.add(...classes);
+    return ()=>el.classList.remove(...classes);
 }
-// function bindAll(element, obj) {
-//   Object.keys(obj).forEach((name) => bind(element, name, getProperty(obj, name)));
-// }
-function $e244f1b8e144127e$var$bindAttributeAndProperty(el, name, value) {
-    $e244f1b8e144127e$var$bindAttribute(el, name, value);
-    $e244f1b8e144127e$var$setPropertyIfChanged(el, name, value);
+function $bf07eb3c6349a827$var$setClassesFromObject(el, classObject) {
+    let split = (classString)=>classString.split(" ").filter(Boolean);
+    let forAdd = Object.entries(classObject).flatMap(([classString, bool])=>bool ? split(classString) : false).filter(Boolean);
+    let forRemove = Object.entries(classObject).flatMap(([classString, bool])=>!bool ? split(classString) : false).filter(Boolean);
+    let added = [];
+    let removed = [];
+    forRemove.forEach((i)=>{
+        if (el.classList.contains(i)) {
+            el.classList.remove(i);
+            removed.push(i);
+        }
+    });
+    forAdd.forEach((i)=>{
+        if (!el.classList.contains(i)) {
+            el.classList.add(i);
+            added.push(i);
+        }
+    });
+    return ()=>{
+        removed.forEach((i)=>el.classList.add(i));
+        added.forEach((i)=>el.classList.remove(i));
+    };
 }
-function $e244f1b8e144127e$var$setIfChanged(el, attrName, value) {
-    if (el.getAttribute(attrName) != value) el.setAttribute(attrName, value);
-}
-function $e244f1b8e144127e$var$setPropertyIfChanged(el, propName, value) {
-    if (el[propName] !== value) el[propName] = value;
-}
+
+
 // As per HTML spec table https://html.spec.whatwg.org/multipage/indices.html#attributes-3:boolean-attribute
-const $e244f1b8e144127e$var$booleanAttributes = new Set([
+const $14a833556dde2961$var$booleanAttributes = new Set([
     "allowfullscreen",
     "async",
     "autofocus",
@@ -577,16 +572,56 @@ const $e244f1b8e144127e$var$booleanAttributes = new Set([
     "reversed",
     "selected"
 ]);
-function $e244f1b8e144127e$var$isBooleanAttr(attrName) {
-    return $e244f1b8e144127e$var$booleanAttributes.has(attrName);
+const $14a833556dde2961$var$preserveIfFalsey = [
+    "aria-pressed",
+    "aria-checked",
+    "aria-expanded",
+    "aria-selected"
+];
+function $14a833556dde2961$export$2385a24977818dd0(element, name, value) {
+    switch(name){
+        case "class":
+            $14a833556dde2961$var$bindClasses(element, value);
+            break;
+        case "checked":
+        case "selected":
+            $14a833556dde2961$var$bindAttributeAndProperty(element, name, value);
+            break;
+        default:
+            $14a833556dde2961$var$bindAttribute(element, name, value);
+            break;
+    }
 }
-function $e244f1b8e144127e$var$attributeShouldntBePreservedIfFalsy(name) {
-    return ![
-        "aria-pressed",
-        "aria-checked",
-        "aria-expanded",
-        "aria-selected"
-    ].includes(name);
+function $14a833556dde2961$var$bindClasses(element, value) {
+    if (element.__stimulusX_undoClasses) element.__stimulusX_undoClasses();
+    element.__stimulusX_undoClasses = (0, $bf07eb3c6349a827$export$2706f8d45625eda6)(element, value);
+}
+function $14a833556dde2961$var$bindAttribute(el, name, value) {
+    if ([
+        null,
+        undefined,
+        false
+    ].includes(value) && $14a833556dde2961$var$attributeShouldntBePreservedIfFalsy(name)) el.removeAttribute(name);
+    else {
+        if ($14a833556dde2961$var$isBooleanAttr(name)) value = name;
+        $14a833556dde2961$var$setIfChanged(el, name, value);
+    }
+}
+function $14a833556dde2961$var$bindAttributeAndProperty(el, name, value) {
+    $14a833556dde2961$var$bindAttribute(el, name, value);
+    $14a833556dde2961$var$setPropertyIfChanged(el, name, value);
+}
+function $14a833556dde2961$var$setIfChanged(el, attrName, value) {
+    if (el.getAttribute(attrName) != value) el.setAttribute(attrName, value);
+}
+function $14a833556dde2961$var$setPropertyIfChanged(el, propName, value) {
+    if (el[propName] !== value) el[propName] = value;
+}
+function $14a833556dde2961$var$isBooleanAttr(attrName) {
+    return $14a833556dde2961$var$booleanAttributes.has(attrName);
+}
+function $14a833556dde2961$var$attributeShouldntBePreservedIfFalsy(name) {
+    return !$14a833556dde2961$var$preserveIfFalsey.includes(name);
 }
 
 
@@ -594,7 +629,7 @@ function $e244f1b8e144127e$var$attributeShouldntBePreservedIfFalsy(name) {
     effect(()=>{
         (0, $c6f8b3abaeac122e$export$c98382a3d82f9519)(()=>{
             const value = modify(evaluate(property), modifiers);
-            (0, $e244f1b8e144127e$export$2385a24977818dd0)(el, subject, value);
+            (0, $14a833556dde2961$export$2385a24977818dd0)(el, subject, value);
         });
     });
 });
