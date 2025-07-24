@@ -1,6 +1,6 @@
 {
   "name": "stimulus-x",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Reactivity engine for Stimulus JS",
   "author": "Mark Perkins",
   "license": "MIT",
@@ -26,7 +26,6 @@
       }
     }
   },
-  
   "keywords": [
     "stimulus",
     "stimulusjs",
