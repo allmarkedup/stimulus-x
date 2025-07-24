@@ -1,5 +1,5 @@
 import { Application } from "@hotwired/stimulus";
-import { StimulusX } from "../../src";
+import StimulusX from "../../src";
 import { nextTick } from "./helpers";
 
 export async function createTestContext() {
