@@ -13,18 +13,13 @@
     "url": "git+ssh://git@github.com/allmarkedup/stimulus-x.git"
   },
   "source": "src/index.js",
-  "module": "dist/main.js",
-  "demo": "dist/demo.html",
-  "cdn": "dist/cdn.js",
+  "module": "dist/stimulus-x.esm.js",
+  "main": "dist/stimulus-x.cjs.js",
   "targets": {
-    "module": {},
-    "cdn": {
-      "outputFormat": "global",
-      "includeNodeModules": true,
-      "engines": {
-        "browsers": "> 0.5%, last 2 versions, not dead"
-      }
-    }
+    "module": {
+      "includeNodeModules": true
+    },
+    "main": {}
   },
   "keywords": [
     "stimulus",
