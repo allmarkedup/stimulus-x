@@ -1,5 +1,4 @@
 import StimulusX from "./stimulus-x.js";
-import { nextTick } from "./scheduler.js";
 
 import "./modifiers/downcase.js";
 import "./modifiers/not.js";
@@ -9,5 +8,3 @@ import "./directives/attr.js";
 import "./directives/text.js";
 
 export default StimulusX;
-
-export { StimulusX, nextTick };

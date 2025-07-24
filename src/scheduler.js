@@ -2,6 +2,8 @@ let flushPending = false;
 let flushing = false;
 let queue = [];
 let lastFlushedIndex = -1;
+let tickStack = [];
+let isHolding = false;
 
 export function scheduler(callback) {
   queueJob(callback);
@@ -41,9 +43,6 @@ export function flushJobs() {
 
   flushing = false;
 }
-
-let tickStack = [];
-let isHolding = false;
 
 export function nextTick(callback = () => {}) {
   queueMicrotask(() => {
