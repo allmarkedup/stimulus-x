@@ -78,7 +78,7 @@ function destroyTree(root) {
 // To fix this any value attribute changes are registered by calling
 // the value setter on the proxy with the current value - the value is
 // unchanged but calling the getter triggers any related effects.
-function handleValueAttributes(el, attrs, application) {
+function handleValueAttributes(el, attrs) {
   if (!el.hasAttribute("data-controller")) return;
 
   const controllerNames = el
@@ -94,10 +94,10 @@ function handleValueAttributes(el, attrs, application) {
   for (let i = 0; i < attrs.length; i++) {
     const attr = attrs[i];
     const matches = attr.name.match(valueAttributeMatcher);
-    if (matches.length) {
+    if (matches && matches.length) {
       const identifier = matches[1];
       const valueName = matches[2];
-      const controller = application.getControllerForElementAndIdentifier(el, identifier);
+      const controller = StimulusX.application.getControllerForElementAndIdentifier(el, identifier);
 
       mutateDom(() => {
         controller[`${valueName}Value`] = controller[`${valueName}Value`];
