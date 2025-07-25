@@ -13,7 +13,7 @@
 
 _StimulusX_ brings the power of **reactive programming** to [Stimulus](https://stimulus.hotwired.dev), greatly reducing the need for tedious DOM manipulation code and making your controllers cleaner, leaner and easier to understand.
 
-Features include:
+### Features:
 
 #### ⚡️ Live DOM bindings ⚡️ 
 
@@ -31,13 +31,59 @@ Features include:
 * Straighforward **extension API**
 * Add custom **modifiers** and **directives**
 
+### Example: counter controller 
+
+[View this example on JSfiddle &rarr;](https://jsfiddle.net/2nyLrahu/)
+
+```html
+<div data-controller="counter">
+  <div data-bind-attr="class~counter#validityClasses">
+    <span id="count" data-bind-text="counter#countValue"></span> of 
+    <span id="max" data-bind-text="counter#maxValue"></span>
+  </div>
+
+  <button data-action="counter#increment">+</button>
+  <button data-action="counter#decrement">-</button>
+</div>
+```
+
+```js
+// controllers/counter_controller.js
+import { Controller } from "@hotwired/stimulus"
+
+export default class extends Controller {
+  static values = {
+    count: Number,
+    max: {
+      type: Number,
+      default: 5
+    }
+  }
+  
+  get validityClasses(){
+    const valid = this.countValue <= this.maxValue;
+    return {
+      "invalid bold": !valid,
+      "valid": valid,
+    }
+  }
+
+  increment(){
+    this.countValue++;
+  }
+
+  decrement(){
+    this.countValue--;
+  }
+}
+```
+
 ---
 
 > [!WARNING]
 > _This project is very new. The API may still change and it has not been throughly battle-tested yet. Use with caution!_ 
 
 ## Installation
-
 
 Add the `stimulus-x` package to your `package.json`:
 
