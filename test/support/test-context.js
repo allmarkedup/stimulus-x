@@ -30,7 +30,7 @@ export async function createTestContext() {
 
   async function reset() {
     document.body.innerHTML = "";
-    await nextTick(() => app.unload("subject"));
+    await nextTick(() => app.unload());
   }
 
   return { html, subject, reset };

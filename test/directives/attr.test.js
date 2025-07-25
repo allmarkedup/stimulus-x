@@ -1,5 +1,4 @@
 import { Controller } from "@hotwired/stimulus";
-
 import { createTestContext } from "../support/test-context";
 
 let context;

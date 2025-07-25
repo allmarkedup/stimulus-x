@@ -1,7 +1,7 @@
 {
   "name": "stimulus-x",
   "version": "0.1.4",
-  "description": "Reactivity engine for Stimulus JS",
+  "description": "Reactivity engine for Stimulus",
   "author": "Mark Perkins",
   "license": "MIT",
   "bugs": {
