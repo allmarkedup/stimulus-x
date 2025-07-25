@@ -39,7 +39,7 @@ Below is an example of a simple `counter` controller implemented using StimulusX
 <img src=".github/assets/counter.gif" width="120">
 
 > [!TIP]
-> You can [play around with this example on JSfiddle &rarr;](https://jsfiddle.net/fxonjh1w/2/)
+> You can [play around with this example on JSfiddle &rarr;](https://jsfiddle.net/allmarkedup/q293ay8v/)
 
 ```html
 <div data-controller="counter">
