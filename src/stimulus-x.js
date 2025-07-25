@@ -21,7 +21,7 @@ const defaultOptions = {
 const StimulusX = {};
 let markerCount = 1;
 
-StimulusX.extend = function (application, opts = {}) {
+StimulusX.init = function (application, opts = {}) {
   const { optIn } = Object.assign({}, defaultOptions, opts);
   this.application = application;
 

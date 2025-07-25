@@ -4,7 +4,7 @@ import { nextTick } from "./helpers";
 
 export async function createTestContext() {
   const app = Application.start();
-  await nextTick(() => StimulusX.extend(app));
+  await nextTick(() => StimulusX.init(app));
 
   function subject(ControllerClass) {
     app.register("subject", ControllerClass);
