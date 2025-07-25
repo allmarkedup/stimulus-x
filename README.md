@@ -11,39 +11,46 @@
 
 ---
 
-_StimulusX_ brings the power of **reactive programming** to [Stimulus](https://stimulus.hotwired.dev), greatly reducing the need for tedious DOM manipulation code and making your controllers cleaner, leaner and easier to understand.
+_StimulusX_ brings the power of **reactive programming** to [Stimulus](https://stimulus.hotwired.dev), greatly reducing the amount of tedious DOM manipulation code required and making your controllers cleaner, leaner and more flexible.
 
-### Features:
+### Features
 
-#### ⚡️ Live DOM bindings ⚡️ 
+#### ✅ Automatic UI updates with reactive DOM bindings
 
-* Connect **HTML attributes** (and content) to **controller properties** using `data-bind-*` attributes
-* _Reactive_ bindings - so DOM attributes/elements will be **automagically kept in sync** with the value of the properties they are bound to
-* Uses a declarative syntax based on Stimulus [action descriptors](https://stimulus.hotwired.dev/reference/actions)
+* Connect **HTML attributes** (and content) to **controller properties** using `data-bind-*` attributes in your markup
+* HTML attributes/content will **automatically be kept in sync** with the value of the properties they are bound to via the magic of reactive data bindings
+* **Declarative syntax** - specify bindings in a similar way to Stimulus [action descriptors](https://stimulus.hotwired.dev/reference/actions)
+* Chainable **binding modifiers** for easy property value transformations
 
-#### ⚡️ Property watchers ⚡️
+#### ✅ Property watchers
 
 * **Watch any controller property** for changes
-* `[name]PropertyChanged` callback methods for all watched properties
+* `[name]PropertyChanged` **callback methods** available for all watched properties
 
-#### ⚡️ Extensibility ⚡️
+#### ✅ Extensibility
 
 * Straighforward **extension API**
 * Add custom **modifiers** and **directives**
 
-### Example: counter controller 
+### What it looks like
 
-[View this example on JSfiddle &rarr;](https://jsfiddle.net/2nyLrahu/)
+Below is an example of a simple `counter` controller implemented using StimulusX's reactive DOM bindings.
+
+<img src=".github/assets/counter.gif" width="120">
+
+> [!TIP]
+> You can [play around with this example on JSfiddle &rarr;](https://jsfiddle.net/fxonjh1w/2/)
 
 ```html
 <div data-controller="counter">
-  <div data-bind-attr="class~counter#validityClasses">
-    <span id="count" data-bind-text="counter#countValue"></span> of 
-    <span id="max" data-bind-text="counter#maxValue"></span>
+  <div
+    data-bind-attr="class~counter#validityClasses"
+    data-bind-text="counter#displayText"
+    class="display">
   </div>
 
-  <button data-action="counter#increment">+</button>
-  <button data-action="counter#decrement">-</button>
+  <button data-action="counter#increment">⬆️</button>
+  <button data-action="counter#decrement">⬇️</button>
 </div>
 ```
 
@@ -59,12 +66,16 @@ export default class extends Controller {
       default: 5
     }
   }
+
+  get displayText(){
+    return `${this.countValue} of ${this.maxValue}`;
+  }
   
   get validityClasses(){
     const valid = this.countValue <= this.maxValue;
     return {
-      "invalid bold": !valid,
-      "valid": valid,
+      "text-green": valid,
+      "text-red font-bold": !valid,
     }
   }
 
@@ -101,26 +112,47 @@ yarn add stimulus-x
 
 ## Usage
 
-StimulusX hooks into your Stimulus application instance via the `StimulusX.extend` method:
+StimulusX hooks into your Stimulus application instance via the `StimulusX.init` method.
 
 ```js
 import { Application, Controller } from "@hotwired/stimulus";
 import StimulusX from "stimulus-x";
 
 window.Stimulus = Application.start();
-StimulusX.extend(window.Stimulus);
 
-window.Stimulus.register("example", ExampleController);
+// You must call the `StimulusX.init` method _before_ registering any controllers.
+StimulusX.init(Stimulus); 
 
-// ...
+// Register controllers as usual...
+Stimulus.register("example", ExampleController);
 ```
 
-> [!IMPORTANT]
-> You must call the `StimulusX.extend` method _before_ registering any controllers or they will not be made reactive.
+Once initialized, **all registered controllers** will automatically have access to StimulusX's reactive features - including [attribute bindings](#️-attribute-bindings) (e.g. class names, `data-` and `aria-` attributes, `hidden` etc), **text content bindings** and **HTML bindings**.
 
-Controllers are created as usual, but they can now make use of StimulusX's reactive features - including [attribute bindings](#️-attribute-bindings) (e.g. class names, `data-` and `aria-` attributes, `hidden` etc), **text content bindings** and **HTML bindings**.
+### Explicit controller opt-in
+
+If you don't want to automatically enable reactivity for **all** of you controllers you can instead choose to opt in to StimulusX features on a controller-by-controller basis.
+
+To enable individual controller opt-in pass `optIn: true` as an option when initializing StimulusX:
 
 ```js
+StimulusX.init(Stimulus, { optIn: true }); 
+```
+
+To enable reactive features for a controller, set the `static reactive` variable to `true` in the controller class:
+
+```js
+import { Controller } from "@hotwired/stimulus"
+
+export default class extends Controller {
+  static reactive = true; // enable StimulusX reactive features for this controller
+  // ...
+}
+```
+
+
+
+<!-- ```js
 // controllers/loader_controller.js
 import { Controller } from "@hotwired/stimulus"
 
@@ -140,7 +172,7 @@ export default class extends Controller {
   <progress data-bind-attr="value~loader#progressValue" max="100"></progress>
   <p>Status: <strong data-bind-text="loader#status"></strong></p>
 </div>
-```
+``` -->
 
 ## ⚡️ HTML attribute bindings ⚡️ 
 
@@ -155,7 +187,7 @@ They are specified declaratively in your HTML using `data-bind-attr` attributes 
 ```
 
 ```js
-class LightboxController extends Controller {
+export default class extends Controller {
   static values = {
     src: {
       type: String,
@@ -184,15 +216,29 @@ The `data-bind-attr` value `src~lightbox#srcValue` is called a _binding descript
 * `srcValue` is the name of the property that the attribute value should be bound to
 
 > [!TIP]
-> In this example the `src` attribute is bound to a Stimulus [Value property accessor](https://stimulus.hotwired.dev/reference/values) property (`lightbox#srcValue`). But it doesn't need to be - you can bind to any (public) controller property that you like!
+> In this example the `src` attribute is bound to a Stimulus [value property accessor](https://stimulus.hotwired.dev/reference/values) property (`lightbox#srcValue`). But it doesn't need to be - you can bind to any (public) controller property that you like.
 
-### Binding class names 
+### Class attribute
 
 > _Docs coming soon&hellip;_
 
 ### Boolean attributes
 
-> _Docs coming soon&hellip;_
+[Boolean attributes](https://html.spec.whatwg.org/multipage/common-microsyntaxes.html#boolean-attributes) such as `checked`, `disabled`, `open` etc will be _added_ if the value of the property they are bound to is `true`, and _removed completely_ when it is `false`.
+
+```html
+<div data-controller="example">
+  <button data-bind-attr="disabled~example#disabledValue">submit</button>
+</div>
+```
+
+```js
+export default class extends Controller {
+  static values = {
+    disabled: Boolean
+  }
+}
+```
 
 ### Using modifiers
 
@@ -206,6 +252,31 @@ The `data-bind-attr` value `src~lightbox#srcValue` is called a _binding descript
 
 > _Docs coming soon&hellip;_
 
-## ⚡️ Watching properties ⚡️
+## ⚡️ Watching properties for changes ⚡️
 
-> _Docs coming soon&hellip;_
+```js
+import { Controller } from "@hotwired/stimulus"
+
+export default class extends Controller {
+  static watch = ["enabled", "userInput"];
+
+  connect(){
+    this.enabled = false;
+    this.userInput = "";
+  }
+
+  enabledPropertyChanged(currentValue, previousValue){
+    if (currentValue) {
+      console.log("Controller is enabled");
+    } else {
+      console.log("Controller has been disabled");
+    }
+  }
+
+  userInputPropertyChanged(currentValue, previousValue){
+    console.log(`User input has changed from "${previousValue}" to "${currentValue}"`);
+  }
+
+  // ...
+}
+```
