@@ -490,9 +490,13 @@ function $f3ad94c9f84f4d57$export$588732934346abbf(el, callback) {
 
 
 
+const $fb4fefc02c80dc70$var$defaultOptions = {
+    optIn: false
+};
 const $fb4fefc02c80dc70$var$StimulusX = {};
 let $fb4fefc02c80dc70$var$markerCount = 1;
-$fb4fefc02c80dc70$var$StimulusX.extend = function(application, { optIn: optIn = false }) {
+$fb4fefc02c80dc70$var$StimulusX.extend = function(application, opts = {}) {
+    const { optIn: optIn } = Object.assign({}, $fb4fefc02c80dc70$var$defaultOptions, opts);
     this.application = application;
     // Override controller registration to insert a reactive subclass instead of the original
     application.register = function(identifier, ControllerClass) {

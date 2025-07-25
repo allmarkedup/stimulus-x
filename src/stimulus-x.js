@@ -14,10 +14,15 @@ import {
 } from "./mutation";
 import { deferHandlingDirectives, directives } from "./directives";
 
+const defaultOptions = {
+  optIn: false,
+};
+
 const StimulusX = {};
 let markerCount = 1;
 
-StimulusX.extend = function (application, {optIn = false}) {
+StimulusX.extend = function (application, opts = {}) {
+  const { optIn } = Object.assign({}, defaultOptions, opts);
   this.application = application;
 
   // Override controller registration to insert a reactive subclass instead of the original
