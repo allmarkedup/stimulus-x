@@ -32,7 +32,7 @@ _StimulusX_ brings the power of **reactive programming** to [Stimulus](https://s
 * Straighforward **extension API**
 * Add custom **modifiers** and **directives**
 
-### What it looks like
+## A basic counter example
 
 Below is an example of a simple `counter` controller implemented using StimulusX's reactive DOM bindings.
 
@@ -127,11 +127,11 @@ StimulusX.init(Stimulus);
 Stimulus.register("example", ExampleController);
 ```
 
-Once initialized, **all registered controllers** will automatically have access to StimulusX's reactive features - including [attribute bindings](#️-attribute-bindings) (e.g. class names, `data-` and `aria-` attributes, `hidden` etc), **text content bindings** and **HTML bindings**.
+By default, **all registered controllers** will automatically have access to StimulusX's reactive features - including [attribute bindings](#️-attribute-bindings) (e.g. class names, `data-` and `aria-` attributes, `hidden` etc), **text content bindings** and **HTML bindings**.
 
 ### Explicit controller opt-in
 
-If you don't want to automatically enable reactivity for **all** of you controllers you can instead choose to opt in to StimulusX features on a controller-by-controller basis.
+If you **don't want to automatically enable reactivity** for all of you controllers you can instead choose to _opt-in_ to StimulusX features on a controller-by-controller basis.
 
 To enable individual controller opt-in pass `optIn: true` as an option when initializing StimulusX:
 
@@ -149,30 +149,6 @@ export default class extends Controller {
   // ...
 }
 ```
-
-
-
-<!-- ```js
-// controllers/loader_controller.js
-import { Controller } from "@hotwired/stimulus"
-
-export default class extends Controller {
-  static values = {
-    progress: Number
-  }
-  
-  get status(){
-    return this.progressValue === 100 ? "finished" : "loading";
-  }
-}
-```
-
-```html
-<div data-controller="loader">
-  <progress data-bind-attr="value~loader#progressValue" max="100"></progress>
-  <p>Status: <strong data-bind-text="loader#status"></strong></p>
-</div>
-``` -->
 
 ## ⚡️ HTML attribute bindings ⚡️ 
 
@@ -207,20 +183,88 @@ this.srcValue = "https://kittens.com/daily-kitten.jpg"
 // <img src="https://kittens.com/daily-kitten.jpg">
 ```
 
-### Descriptors
+### Binding descriptors
 
-The `data-bind-attr` value `src~lightbox#srcValue` is called a _binding descriptor_. In this descriptor:
+The value of the `data-bind-attr` attribute - `src~lightbox#srcValue` in the example above - is called an **attribute binding descriptor**.
 
-* `src` is the DOM attribute to be updated
-* `lightbox` is the controller identifier
-* `srcValue` is the name of the property that the attribute value should be bound to
+Binding descriptors take the general form `{attribute}~{identifier}#{property}`.
+
+So in the descriptor `src~lightbox#srcValue`:
+
+* `src` is the **HTML attribute** to be added/updated/remove
+* `lightbox` is the **controller identifier**
+* `srcValue` is the **name of the property** that the attribute value should be bound to
+
+> [!NOTE]
+> The **`~`** symbol (_tilde)_ is the delimiter between the attribute name and the controller identifier, just like the way the `->` symbol is used in Stimulus actions.
+
+<!-- Here are some other examples of valid attribute binding descriptors:
+
+```
+data-status~workflow#getStatus
+open~toggle#openValue
+``` -->
 
 > [!TIP]
 > In this example the `src` attribute is bound to a Stimulus [value property accessor](https://stimulus.hotwired.dev/reference/values) property (`lightbox#srcValue`). But it doesn't need to be - you can bind to any (public) controller property that you like.
 
-### Class attribute
+### Binding classes
 
-> _Docs coming soon&hellip;_
+`class` attribute bindings let you set specific classes on an element based on controller state.
+
+```html
+<div data-controller="counter">
+  <div data-bind-attr="class~counter#validityClasses">
+    ...
+  </div>
+</div>
+```
+
+```js
+// controllers/counter_controller.js
+import { Controller } from "@hotwired/stimulus"
+
+export default class extends Controller {
+  static values = {
+    count: Number,
+  }
+
+  get validityClasses(){
+    if (this.countValue > 10) {
+      return "text-red font-bold";
+    } else {
+      return "text-green";
+    }
+  }
+}
+```
+
+In the example above, the value of the `validityClasses` property is a string of classes that depends on whether or not the `countValue` is greater than `10`:
+
+* If `countValue > 10` then the element `class` attribute will be set to `"text-red font-bold"`.
+* If `countValue < 10` then the element `class` attribute will be set to `"text-green"`.
+
+The list of classes can be returned as a **string** or as an **array** - or as a special [class object](#class-objects).
+
+#### Class objects
+
+If you prefer, you can use a class object syntax to specify the class names. These are objects where the classes are the keys and booleans are the values.
+
+The example above could be rewritten to use a class object as follows:
+
+```js
+export default class extends Controller {
+  // ...
+  get validityClasses(){
+    return {
+      "text-red font-bold": this.countValue > 10,
+      "text-green": this.countValue <= 10,
+    }
+  }
+}
+```
+
+The list of class names will be resolved by merging all the class names from keys with a value of `true` and ignoring all the rest.
 
 ### Boolean attributes
 
@@ -240,17 +284,71 @@ export default class extends Controller {
 }
 ```
 
-### Using modifiers
-
-> _Docs coming soon&hellip;_
-
 ## ⚡️ Text content bindings ⚡️
 
-> _Docs coming soon&hellip;_
+Text content bindings connect the **`textContent` of an element** to a **controller property**. They are useful when you want to dynamically update text content on the page based on controller state.
+
+Text content bindings are specified using `data-bind-text` attributes where the value is a binding descriptor in the form `{identifier}#{property}`.
+
+```html
+<div data-controller="workflow">
+  Status: <span data-bind-text="workflow#statusValue"></span>
+</div>
+```
+
+```js
+export default class extends Controller {
+  static values = {
+    status: {
+      type: String,
+      default: "in progress"
+    }
+  }
+}
+```
 
 ## ⚡️ HTML bindings ⚡️
 
-> _Docs coming soon&hellip;_
+HTML bindings are very similar to [text content bindings](#️-text-content-bindings-️) except they update the element's `innerHTML` instead of `textContent`.
+
+HTML bindings are specified using `data-bind-html` attributes where the value is a binding descriptor in the form `{identifier}#{property}`.
+
+```html
+<div data-controller="workflow">
+  <div class="status-icon" data-bind-html="workflow#statusIcon"></div>
+</div>
+```
+
+```js
+export default class extends Controller {
+  static values = {
+    status: {
+      type: String,
+      default: "in progress"
+    }
+  }
+
+  get statusIcon(){
+    if (this.statusValue === "complete"){
+      return `<i data-icon="in-complete"></i>`;
+    } else {
+      return `<i data-icon="in-progress"></i>`;
+    }
+  }
+}
+```
+
+## ⚡️ Binding modifiers ⚡️ 
+
+_Modifiers_ are a convenient way to declaratively transform property values before updating the DOM.
+
+Modifiers are appended to binding descriptors with a `:` prefix:
+
+```html
+<h1 data-bind-text="article#titleValue:upcase"></h1>
+```
+
+> _More docs coming soon..._
 
 ## ⚡️ Watching properties for changes ⚡️
 
@@ -280,3 +378,15 @@ export default class extends Controller {
   // ...
 }
 ```
+
+## ⚡️ Extending StimulusX ⚡️
+
+> _Docs coming soon..._
+
+## Credits and inspiration
+
+StimulusX uses [VueJS's reactivity engine](https://github.com/vuejs/core/tree/main/packages/reactivity) under the hood and was inspired by (and borrows code from!) the excellent [Alpine.JS](https://alpinejs.dev/directives/bind) library.
+
+## License
+
+StimulusX is available as open source under the terms of the MIT License.
