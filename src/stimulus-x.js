@@ -17,12 +17,18 @@ import { deferHandlingDirectives, directives } from "./directives";
 const StimulusX = {};
 let markerCount = 1;
 
-StimulusX.extend = function (application) {
+StimulusX.extend = function (application, {optIn = false}) {
   this.application = application;
 
   // Override controller registration to insert a reactive subclass instead of the original
   application.register = function (identifier, ControllerClass) {
-    const controllerConstructor = createReactiveControllerClass(ControllerClass, application);
+    let controllerConstructor;
+    if (optIn === false || ControllerClass.reactive === true) {
+      controllerConstructor = createReactiveControllerClass(ControllerClass, application);
+    } else {
+      controllerConstructor = ControllerClass;
+    }
+
     application.load({
       identifier,
       controllerConstructor,

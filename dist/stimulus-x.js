@@ -1,4 +1,4 @@
-import {reactive as $5OpyM$reactive, effect as $5OpyM$effect, stop as $5OpyM$stop} from "@vue/reactivity/dist/reactivity.esm-browser.prod.js";
+import {isReactive as $5OpyM$isReactive, reactive as $5OpyM$reactive, effect as $5OpyM$effect, stop as $5OpyM$stop} from "@vue/reactivity/dist/reactivity.esm-browser.prod.js";
 import {getProperty as $5OpyM$getProperty} from "dot-prop";
 
 const $e46f4b33a7e1fc07$var$modifierHandlers = [];
@@ -257,6 +257,7 @@ function $c6f8b3abaeac122e$var$onMutate(mutations) {
 
 
 
+const $3ee5a2b2e05cc741$export$352205f445242f02 = (0, $5OpyM$isReactive);
 const $3ee5a2b2e05cc741$export$90a44edba14e47be = (0, $5OpyM$reactive);
 const $3ee5a2b2e05cc741$export$dc573d8a6576cdb3 = (callback)=>(0, $5OpyM$effect)(callback, {
         scheduler: (0, $eae25d6e66596517$export$d30788f2c20241cd)((task)=>task)
@@ -419,6 +420,10 @@ function $695a1f9e83b71f7c$export$1dd40105af141b08(el, directive) {
     let wrapperHandler = (application)=>{
         let controller = (0, $61c34dda51f70fa1$export$6d5f0ef1727b562e)(el, directive.identifier, application);
         if (controller) {
+            if (!(0, $3ee5a2b2e05cc741$export$352205f445242f02)(controller)) {
+                console.warn(`StimulusX: Directive attached to non-reactive controller '${directive.identifier}'`, el);
+                return;
+            }
             handler = handler.bind(handler, el, directive, {
                 ...utilities,
                 evaluate: $695a1f9e83b71f7c$var$evaluator(controller),
@@ -487,11 +492,13 @@ function $f3ad94c9f84f4d57$export$588732934346abbf(el, callback) {
 
 const $fb4fefc02c80dc70$var$StimulusX = {};
 let $fb4fefc02c80dc70$var$markerCount = 1;
-$fb4fefc02c80dc70$var$StimulusX.extend = function(application) {
+$fb4fefc02c80dc70$var$StimulusX.extend = function(application, { optIn: optIn = false }) {
     this.application = application;
     // Override controller registration to insert a reactive subclass instead of the original
     application.register = function(identifier, ControllerClass) {
-        const controllerConstructor = (0, $61c34dda51f70fa1$export$d56142fa17014959)(ControllerClass, application);
+        let controllerConstructor;
+        if (optIn === false || ControllerClass.reactive === true) controllerConstructor = (0, $61c34dda51f70fa1$export$d56142fa17014959)(ControllerClass, application);
+        else controllerConstructor = ControllerClass;
         application.load({
             identifier: identifier,
             controllerConstructor: controllerConstructor

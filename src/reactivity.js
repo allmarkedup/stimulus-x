@@ -1,6 +1,7 @@
-import { effect as vueEffect, stop as release, reactive as vueReactive } from "@vue/reactivity/dist/reactivity.esm-browser.prod.js";
+import { effect as vueEffect, stop as release, reactive as vueReactive, isReactive as vueIsReactive } from "@vue/reactivity/dist/reactivity.esm-browser.prod.js";
 import { scheduler } from "./scheduler";
 
+const isReactive = vueIsReactive;
 const reactive = vueReactive;
 const effect = (callback) =>
   vueEffect(callback, {
@@ -66,4 +67,4 @@ export function watch(getter, callback) {
   return () => release(effectReference);
 }
 
-export { effect, release, reactive };
+export { effect, release, reactive, isReactive };

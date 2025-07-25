@@ -1,5 +1,5 @@
 import { onAttributeRemoved } from "./mutation";
-import { elementBoundEffect } from "./reactivity";
+import { elementBoundEffect, isReactive } from "./reactivity";
 import { applyModifiers } from "./modifiers";
 import { getClosestController, evaluateControllerProperty } from "./controller";
 
@@ -74,6 +74,10 @@ export function getDirectiveHandler(el, directive) {
   let wrapperHandler = (application) => {
     let controller = getClosestController(el, directive.identifier, application);
     if (controller) {
+      if (!isReactive(controller)) {
+        console.warn(`StimulusX: Directive attached to non-reactive controller '${directive.identifier}'`, el);
+        return;
+      }
       handler = handler.bind(handler, el, directive, {
         ...utilities,
         evaluate: evaluator(controller),
