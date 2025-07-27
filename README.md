@@ -1,13 +1,16 @@
-<center>
+<div align="center">
 
-# StimulusX 
-
-**⚡️ Reactivity engine for Stimulus controllers ⚡️**
+<img src=".github/assets/logo.png" width="250">
+ 
+_Reactivity engine for Stimulus controllers_
+<br>
 
 ![NPM Version](https://img.shields.io/npm/v/stimulus-x)
  [![CI](https://github.com/allmarkedup/stimulus-x/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/allmarkedup/stimulus-x/actions/workflows/ci.yml)
 
-</center>
+</div>
+
+---
 
 _StimulusX_ brings the power of **reactive programming** to [Stimulus](https://stimulus.hotwired.dev). It provides a **declarative syntax** for creating **live _controller&rarr;HTML_ connections** that greatly reduce the need for tedious manual DOM manipulation code in your controllers, making them cleaner, leaner and more flexible 😎
 
