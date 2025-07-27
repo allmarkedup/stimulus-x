@@ -378,7 +378,7 @@ function $695a1f9e83b71f7c$export$19b57a1ea2e090cb(name) {
 }
 function $695a1f9e83b71f7c$export$90a684c00f3df6ed(el, attributes) {
     const directives = Array.from(attributes).filter($695a1f9e83b71f7c$var$isDirectiveAttribute).map($695a1f9e83b71f7c$var$toParsedDirectives);
-    return directives.flat().map((directive)=>$695a1f9e83b71f7c$export$1dd40105af141b08(el, directive));
+    return directives.flat().filter((d)=>d).map((directive)=>$695a1f9e83b71f7c$export$1dd40105af141b08(el, directive));
 }
 function $695a1f9e83b71f7c$export$3d81bdeca067fd2d(callback) {
     $695a1f9e83b71f7c$var$isDeferringHandlers = true;
@@ -452,14 +452,18 @@ function $695a1f9e83b71f7c$var$toParsedDirectives({ name: name, value: value }) 
         let valueExpression = subject ? bindingExpression.replace(`${subject}~`, "") : bindingExpression;
         let modifiers = valueExpression.match(/\:[^:\]]+(?=[^\]]*$)/g) || [];
         modifiers = modifiers.map((i)=>i.replace(":", ""));
+        valueExpression = valueExpression.split(":")[0];
         if (valueExpression[0] === "!") {
             valueExpression = valueExpression.slice(1);
             modifiers.push("not");
         }
-        valueExpression = valueExpression.split(":")[0];
         const identifierMatch = valueExpression.match(/^([a-zA-Z0-9\-_]+)#/);
-        const identifier = identifierMatch ? identifierMatch[1] : null;
-        const property = identifier ? valueExpression.replace(`${identifier}#`, "") : valueExpression;
+        if (!identifierMatch) {
+            console.warn(`Invalid binding descriptor ${bindingExpression}`);
+            return null;
+        }
+        const identifier = identifierMatch[1];
+        let property = identifier ? valueExpression.replace(`${identifier}#`, "") : valueExpression;
         return {
             type: type,
             subject: subject,
@@ -495,7 +499,8 @@ const $fb4fefc02c80dc70$var$defaultOptions = {
 };
 const $fb4fefc02c80dc70$var$StimulusX = {};
 let $fb4fefc02c80dc70$var$markerCount = 1;
-$fb4fefc02c80dc70$var$StimulusX.extend = function(application, opts = {}) {
+console.log("adasdsd");
+$fb4fefc02c80dc70$var$StimulusX.init = function(application, opts = {}) {
     const { optIn: optIn } = Object.assign({}, $fb4fefc02c80dc70$var$defaultOptions, opts);
     this.application = application;
     // Override controller registration to insert a reactive subclass instead of the original
@@ -571,6 +576,10 @@ var $fb4fefc02c80dc70$export$2e2bcd8739ae039 = $fb4fefc02c80dc70$var$StimulusX;
 
 
 (0, $e46f4b33a7e1fc07$export$cd4b50bb4e5c05a3)("not", (value)=>!value);
+
+
+
+(0, $e46f4b33a7e1fc07$export$cd4b50bb4e5c05a3)("strip", (value)=>value.toString().trim());
 
 
 
