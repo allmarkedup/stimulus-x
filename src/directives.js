@@ -92,7 +92,7 @@ export function getDirectiveHandler(el, directive) {
         ? directiveHandlerStacks.get(currentHandlerStackKey).push(handler)
         : handler();
     } else {
-      console.error(`Controller '${directive.indentifier}' not found`);
+      console.error(`Controller '${directive.identifier}' not found`);
     }
   };
 
