@@ -32,7 +32,7 @@ describe("applying modifiers", async () => {
   );
 
   test("single modifier", async () => {
-    const { getTestElement, subjectController } = await context.html(`
+    const { getTestElement } = await context.html(`
       <div data-controller="subject">
         <div data-bind-text="subject#mixedStringValue:upcase" data-test-element="output"></div>
       </div>
@@ -42,7 +42,7 @@ describe("applying modifiers", async () => {
   });
 
   test("chained modifiers", async () => {
-    const { getTestElement, subjectController } = await context.html(`
+    const { getTestElement } = await context.html(`
       <div data-controller="subject">
         <div data-bind-text="subject#mixedStringValue:upcase:downcase" data-test-element="output"></div>
       </div>

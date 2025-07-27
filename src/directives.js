@@ -20,8 +20,10 @@ export function directiveExists(name) {
 
 export function directives(el, attributes) {
   const directives = Array.from(attributes).filter(isDirectiveAttribute).map(toParsedDirectives);
-
-  return directives.flat().map((directive) => getDirectiveHandler(el, directive));
+  return directives
+    .flat()
+    .filter((d) => d)
+    .map((directive) => getDirectiveHandler(el, directive));
 }
 
 export function deferHandlingDirectives(callback) {
@@ -75,7 +77,10 @@ export function getDirectiveHandler(el, directive) {
     let controller = getClosestController(el, directive.identifier, application);
     if (controller) {
       if (!isReactive(controller)) {
-        console.warn(`StimulusX: Directive attached to non-reactive controller '${directive.identifier}'`, el);
+        console.warn(
+          `StimulusX: Directive attached to non-reactive controller '${directive.identifier}'`,
+          el
+        );
         return;
       }
       handler = handler.bind(handler, el, directive, {
@@ -123,16 +128,21 @@ function toParsedDirectives({ name, value }) {
     let modifiers = valueExpression.match(/\:[^:\]]+(?=[^\]]*$)/g) || [];
     modifiers = modifiers.map((i) => i.replace(":", ""));
 
-    if (valueExpression[0] === "!") {
-      valueExpression = valueExpression.slice(1);
-      modifiers.push("not");
-    }
-
     valueExpression = valueExpression.split(":")[0];
 
     const identifierMatch = valueExpression.match(/^([a-zA-Z0-9\-_]+)#/);
-    const identifier = identifierMatch ? identifierMatch[1] : null;
-    const property = identifier ? valueExpression.replace(`${identifier}#`, "") : valueExpression;
+    if (!identifierMatch) {
+      console.warn(`Invalid binding descriptor ${bindingExpression}`);
+      return null;
+    }
+
+    const identifier = identifierMatch[1];
+    let property = identifier ? valueExpression.replace(`${identifier}#`, "") : valueExpression;
+
+    if (property[0] === "!") {
+      property = property.slice(1);
+      modifiers.push("not");
+    }
 
     return {
       type,
