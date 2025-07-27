@@ -130,6 +130,11 @@ function toParsedDirectives({ name, value }) {
 
     valueExpression = valueExpression.split(":")[0];
 
+    if (valueExpression[0] === "!") {
+      valueExpression = valueExpression.slice(1);
+      modifiers.push("not");
+    }
+
     const identifierMatch = valueExpression.match(/^([a-zA-Z0-9\-_]+)#/);
     if (!identifierMatch) {
       console.warn(`Invalid binding descriptor ${bindingExpression}`);
@@ -138,11 +143,6 @@ function toParsedDirectives({ name, value }) {
 
     const identifier = identifierMatch[1];
     let property = identifier ? valueExpression.replace(`${identifier}#`, "") : valueExpression;
-
-    if (property[0] === "!") {
-      property = property.slice(1);
-      modifiers.push("not");
-    }
 
     return {
       type,

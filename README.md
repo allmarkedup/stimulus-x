@@ -9,37 +9,41 @@
 
 </center>
 
----
+_StimulusX_ brings the power of **reactive programming** to [Stimulus](https://stimulus.hotwired.dev). It provides a **declarative syntax** for creating **live _controller&rarr;HTML_ connections** that greatly reduce the need for tedious manual DOM manipulation code in your controllers, making them cleaner, leaner and more flexible 😎
 
-_StimulusX_ brings the power of **reactive programming** to [Stimulus](https://stimulus.hotwired.dev), greatly reducing the amount of tedious DOM manipulation code required and making your controllers cleaner, leaner and more flexible.
+## Features
 
-### Features
+#### 🪢&nbsp; Automatic UI updates with reactive DOM bindings 
 
-#### ✅ Automatic UI updates with reactive DOM bindings
+* Connect HTML attributes (and content) to controller properties using `data-bind-*` attributes in your markup.
+* HTML attributes and content will automatically be kept in sync with the value of the properties they are bound to via the magic of _reactive data bindings_.
+* Use chainable value modifiers to transform property values before applying to the DOM.
 
-* Connect **HTML attributes** (and content) to **controller properties** using `data-bind-*` attributes in your markup
-* HTML attributes/content will **automatically be kept in sync** with the value of the properties they are bound to via the magic of reactive data bindings
-* **Declarative syntax** - specify bindings in a similar way to Stimulus [action descriptors](https://stimulus.hotwired.dev/reference/actions)
-* Chainable **binding modifiers** for easy property value transformations
+&nbsp;&nbsp;&nbsp; [**📚 Read the docs &rarr;**](#dom-bindings-overview)
 
-#### ✅ Property watchers
+#### 🧿&nbsp; Property watchers
 
-* **Watch any controller property** for changes
-* `[name]PropertyChanged` **callback methods** available for all watched properties
+* Watch any controller property for changes
+* `[name]PropertyChanged` callback methods available for all watched properties
 
-#### ✅ Extensibility
+&nbsp;&nbsp;&nbsp; [**📚 Read the docs &rarr;**](#watching-properties)
+
+#### 🧩&nbsp; Extensibility
 
 * Straighforward **extension API**
 * Add custom **modifiers** and **directives**
 
-## A basic counter example
+&nbsp;&nbsp;&nbsp; [**📚 Read the docs &rarr;**](#extending)
+
+## Counter example
 
 Below is an example of a simple `counter` controller implemented using StimulusX's reactive DOM bindings.
 
-<img src=".github/assets/counter.gif" width="120">
-
 > [!TIP]
-> You can [play around with this example on JSfiddle &rarr;](https://jsfiddle.net/allmarkedup/q293ay8v/)
+> _You can find a [runnable version of this example on JSfiddle &rarr;](https://jsfiddle.net/allmarkedup/q293ay8v/)_
+
+
+<img src=".github/assets/counter.gif" width="120">
 
 ```html
 <div data-controller="counter">
@@ -127,7 +131,7 @@ StimulusX.init(Stimulus);
 Stimulus.register("example", ExampleController);
 ```
 
-By default, **all registered controllers** will automatically have access to StimulusX's reactive features - including [attribute bindings](#️-attribute-bindings) (e.g. class names, `data-` and `aria-` attributes, `hidden` etc), **text content bindings** and **HTML bindings**.
+By default, **all registered controllers** will automatically have access to StimulusX's reactive features - including [attribute bindings](#️attribute-bindings) (e.g. class names, `data-` and `aria-` attributes, `hidden` etc), [text content bindings](#text-bindings), [HTML bindings](#html-bindings) and more.
 
 ### Explicit controller opt-in
 
@@ -150,11 +154,82 @@ export default class extends Controller {
 }
 ```
 
-## ⚡️ HTML attribute bindings ⚡️ 
+<h2 id="dom-bindings-overview">Reactive DOM bindings overview</h2>
 
-Attribute bindings connect **HTML attribute values** to **controller properties**.
+[HTML attributes](#attribute-binding), [text](#text-binding) and [HTML content](#text-binding) can be tied to the value of controller properties using `data-bind-*` attributes in your HTML.
 
-They are specified declaratively in your HTML using `data-bind-attr` attributes and use a similar syntax to Stimulus [action descriptors](https://stimulus.hotwired.dev/reference/actions#descriptors).
+These bindings are _reactive_ which means the DOM is **automatically updated** when the value of the controller properties change.
+
+### Binding descriptors
+
+Bindings are specified declaratively in your HTML using `data-bind-(attr|text|html)` attributes where the _value_ of the attribute is a **binding descriptor**.
+
+**Attribute** binding descriptors take the form `attribute~identifier#property` where `attribute` is the name of the **HTML attribute** to set, `identifier` is the **controller identifier** and `property` is the **name of the property** to bind to.
+
+```html
+<!-- keep the `src` attribute value in sync with the value of the lightbox controller `.imageUrlValue` property -->
+<img data-bind-attr="src~lightbox#imageUrlValue">
+```
+
+📚 ***Read more: [Attribute bindings &rarr;](#attribute-binding)***
+
+**Text** and **HTML** binding descriptors take the form `identifier#property` where `identifier` is the **controller identifier** and `property` is the **name of the property** to bind to.
+
+```html
+<!-- keep `element.textContent` in sync with the value of the article controller `.titleValue` property -->
+<h1 data-bind-text="article#titleValue"></h1>
+
+<!-- keep `element.innerHTML` in sync with the value of the article controller `.proseContent` property -->
+<div data-bind-html="article#proseContent"></div>
+```
+
+📚 ***Read more: [text bindings](#text-binding)*** _and_ ***[HTML bindings &rarr;](#html-binding)***
+
+> [!NOTE]
+> _If you are familiar with Stimulus [action descriptors](https://stimulus.hotwired.dev/reference/actions#descriptors) then binding descriptors should feel familiar as they have a similar role and syntax._
+
+### Negating property values
+
+Boolean property values can be negated (inverted) by prefixing the `identifier#property` part of the binding descriptor with an exclaimation mark:.
+
+```html
+<details data-bind-attr="open~!panel#closed"></details>
+```
+
+> [!NOTE]
+> _The `!` prefix is really just an more concise alternative syntax for applying the `:not` modifier._
+
+### Value modifiers
+
+Inline _value modifiers_ are a convenient way to transform property values in situ before updating the DOM.
+
+Modifiers are appended to the end of [binding descriptors](#binding-descriptors) and are separated from the descriptor (or from each other) by a `:` colon.
+
+The example below uses the `upcase` modifier to transform the title  to upper case before displaying it on the page:
+
+```html
+<h1 data-bind-text="article#titleValue:upcase"></h1>
+```
+
+> [!TIP]
+> _Multiple modifiers can be piped together one after each other, separated by colons, e.g. `article#titleValue:upcase:trim`_
+
+StimulusX provides the following built-in modifiers:
+
+* `:upcase` - transform text to uppercase
+* `:downcase` - transform text to lowercase
+* `:strip` - strip leading and trailing whitespace
+* `:not` - negate (invert) a boolean value
+
+> [!TIP]
+> _If you need to you can add your own **custom modifiers** -
+see [the section on extending StimulusX](#extending) for details._
+
+<h2 id="attribute-bindings">🪢 Attribute bindings</h2>
+
+Attribute bindings connect **HTML attribute values** to **controller properties**, and ensure that the attribute value is automatically updated so as to stay in sync with the value of the controller property at all times.
+
+They are specified using `data-bind-attr` attributes with [value descriptors](#binding-descriptors) that take the general form `{attribute}~{identifier}#{property}`.
 
 ```html
 <div data-controller="lightbox">
@@ -173,40 +248,18 @@ export default class extends Controller {
 }
 ```
 
-In the example above, the image `src` attribute will initially be set to the default value of the `srcValue` property (i.e. `https://placeholder.com/kittens.jpg`).
-
-Whenever the `srcValue` property is changed, the image `src` attribute value in the DOM will be automatically updated to reflect the new value.
-
-```js
-this.srcValue = "https://kittens.com/daily-kitten.jpg"
-
-// <img src="https://kittens.com/daily-kitten.jpg">
-```
-
-### Binding descriptors
-
-The value of the `data-bind-attr` attribute - `src~lightbox#srcValue` in the example above - is called an **attribute binding descriptor**.
-
-Binding descriptors take the general form `{attribute}~{identifier}#{property}`.
-
-So in the descriptor `src~lightbox#srcValue`:
+In the attribute binding descriptor `src~lightbox#srcValue` above:
 
 * `src` is the **HTML attribute** to be added/updated/remove
 * `lightbox` is the **controller identifier**
 * `srcValue` is the **name of the property** that the attribute value should be bound to
 
-> [!NOTE]
-> The **`~`** symbol (_tilde)_ is the delimiter between the attribute name and the controller identifier, just like the way the `->` symbol is used in Stimulus actions.
+So the image `src` attribute will initially be set to the default value of the `srcValue` property (i.e. `https://placeholder.com/kittens.jpg`). And whenever the `srcValue` property is changed, the image `src` attribute value in the DOM will be automatically updated to reflect the new value.
 
-<!-- Here are some other examples of valid attribute binding descriptors:
-
+```js
+this.srcValue = "https://kittens.com/daily-kitten.jpg"
+// <img src="https://kittens.com/daily-kitten.jpg">
 ```
-data-status~workflow#getStatus
-open~toggle#openValue
-``` -->
-
-> [!TIP]
-> In this example the `src` attribute is bound to a Stimulus [value property accessor](https://stimulus.hotwired.dev/reference/values) property (`lightbox#srcValue`). But it doesn't need to be - you can bind to any (public) controller property that you like.
 
 ### Binding classes
 
@@ -284,9 +337,9 @@ export default class extends Controller {
 }
 ```
 
-## ⚡️ Text content bindings ⚡️
+<h2 id="text-bindings">🪢 Text content bindings</h2>
 
-Text content bindings connect the **`textContent` of an element** to a **controller property**. They are useful when you want to dynamically update text content on the page based on controller state.
+Text content bindings connect the **`textContent`** of an element to a **controller property**. They are useful when you want to dynamically update text on the page based on controller state.
 
 Text content bindings are specified using `data-bind-text` attributes where the value is a binding descriptor in the form `{identifier}#{property}`.
 
@@ -307,9 +360,9 @@ export default class extends Controller {
 }
 ```
 
-## ⚡️ HTML bindings ⚡️
+<h2 id="html-bindings">🪢 HTML bindings</h2>
 
-HTML bindings are very similar to [text content bindings](#️-text-content-bindings-️) except they update the element's `innerHTML` instead of `textContent`.
+HTML bindings are very similar to [text content bindings](#️text-bindings) except they update the element's `innerHTML` instead of `textContent`.
 
 HTML bindings are specified using `data-bind-html` attributes where the value is a binding descriptor in the form `{identifier}#{property}`.
 
@@ -338,19 +391,9 @@ export default class extends Controller {
 }
 ```
 
-## ⚡️ Binding modifiers ⚡️ 
+<h2 id="watching-properties">🧿 Watching properties for changes</h2>
 
-_Modifiers_ are a convenient way to declaratively transform property values before updating the DOM.
-
-Modifiers are appended to binding descriptors with a `:` prefix:
-
-```html
-<h1 data-bind-text="article#titleValue:upcase"></h1>
-```
-
-> _More docs coming soon..._
-
-## ⚡️ Watching properties for changes ⚡️
+> _Docs coming soon..._
 
 ```js
 import { Controller } from "@hotwired/stimulus"
@@ -379,13 +422,13 @@ export default class extends Controller {
 }
 ```
 
-## ⚡️ Extending StimulusX ⚡️
+<h2 id="extending">🧩 Extending StimulusX</h2>
 
 > _Docs coming soon..._
 
 ## Credits and inspiration
 
-StimulusX uses [VueJS's reactivity engine](https://github.com/vuejs/core/tree/main/packages/reactivity) under the hood and was inspired by (and borrows code from!) the excellent [Alpine.JS](https://alpinejs.dev/directives/bind) library.
+StimulusX uses [VueJS's reactivity engine](https://github.com/vuejs/core/tree/main/packages/reactivity) under the hood and was inspired by (and borrows much of its code from) the excellent [Alpine.JS](https://alpinejs.dev/directives/bind) library.
 
 ## License
 
