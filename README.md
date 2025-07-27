@@ -16,27 +16,27 @@ _StimulusX_ brings the power of **reactive programming** to [Stimulus](https://s
 
 ## Features
 
-#### 🪢&nbsp; Automatic UI updates with reactive DOM bindings 
+### ❎&nbsp; Automatic UI updates with reactive DOM bindings 
 
 * Connect HTML attributes (and content) to controller properties using `data-bind-*` attributes in your markup.
 * HTML attributes and content will automatically be kept in sync with the value of the properties they are bound to via the magic of _reactive data bindings_.
 * Use chainable value modifiers to transform property values before applying to the DOM.
 
-&nbsp;&nbsp;&nbsp; [**📚 Read the docs &rarr;**](#dom-bindings-overview)
+&nbsp;&nbsp;&nbsp; 📚 [**Read the docs &rarr;**](#dom-bindings-overview)
 
-#### 🧿&nbsp; Property watchers
+### ❎&nbsp; Property watchers
 
 * Watch any controller property for changes
 * `[name]PropertyChanged` callback methods available for all watched properties
 
-&nbsp;&nbsp;&nbsp; [**📚 Read the docs &rarr;**](#watching-properties)
+&nbsp;&nbsp;&nbsp; 📚 [**Read the docs &rarr;**](#watching-properties)
 
-#### 🧩&nbsp; Extensibility
+### ❎&nbsp; Extensibility
 
 * Straighforward **extension API**
 * Add custom **modifiers** and **directives**
 
-&nbsp;&nbsp;&nbsp; [**📚 Read the docs &rarr;**](#extending)
+&nbsp;&nbsp;&nbsp; 📚 [**Read the docs &rarr;**](#extending)
 
 ## Counter example
 
@@ -228,7 +228,7 @@ StimulusX provides the following built-in modifiers:
 > _If you need to you can add your own **custom modifiers** -
 see [the section on extending StimulusX](#extending) for details._
 
-<h2 id="attribute-bindings">🪢 Attribute bindings</h2>
+<h2 id="attribute-bindings">Attribute bindings</h2>
 
 Attribute bindings connect **HTML attribute values** to **controller properties**, and ensure that the attribute value is automatically updated so as to stay in sync with the value of the controller property at all times.
 
@@ -340,7 +340,7 @@ export default class extends Controller {
 }
 ```
 
-<h2 id="text-bindings">🪢 Text content bindings</h2>
+<h2 id="text-bindings">Text content bindings</h2>
 
 Text content bindings connect the **`textContent`** of an element to a **controller property**. They are useful when you want to dynamically update text on the page based on controller state.
 
@@ -363,7 +363,7 @@ export default class extends Controller {
 }
 ```
 
-<h2 id="html-bindings">🪢 HTML bindings</h2>
+<h2 id="html-bindings">HTML bindings</h2>
 
 HTML bindings are very similar to [text content bindings](#️text-bindings) except they update the element's `innerHTML` instead of `textContent`.
 
@@ -394,7 +394,7 @@ export default class extends Controller {
 }
 ```
 
-<h2 id="watching-properties">🧿 Watching properties for changes</h2>
+<h2 id="watching-properties">Watching properties for changes</h2>
 
 > _Docs coming soon..._
 
@@ -425,7 +425,7 @@ export default class extends Controller {
 }
 ```
 
-<h2 id="extending">🧩 Extending StimulusX</h2>
+<h2 id="extending">Extending StimulusX</h2>
 
 > _Docs coming soon..._
 
