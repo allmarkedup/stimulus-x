@@ -1,5 +1,5 @@
 import { Application, Controller } from "@hotwired/stimulus";
-import StimulusX from "../src";
+import StimulusX from "../dist/stimulus-x";
 import { isReactive } from "../src/reactivity";
 
 describe("controller opt-in", async () => {
