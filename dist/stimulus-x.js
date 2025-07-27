@@ -499,7 +499,6 @@ const $fb4fefc02c80dc70$var$defaultOptions = {
 };
 const $fb4fefc02c80dc70$var$StimulusX = {};
 let $fb4fefc02c80dc70$var$markerCount = 1;
-console.log("adasdsd");
 $fb4fefc02c80dc70$var$StimulusX.init = function(application, opts = {}) {
     const { optIn: optIn } = Object.assign({}, $fb4fefc02c80dc70$var$defaultOptions, opts);
     this.application = application;
