@@ -1535,7 +1535,7 @@ function $d15872fa2e35871a$export$1dd40105af141b08(el, directive) {
                 modify: (0, $76daf8d022148001$export$f1696300e8775372)
             });
             $d15872fa2e35871a$var$isDeferringHandlers ? $d15872fa2e35871a$var$directiveHandlerStacks.get($d15872fa2e35871a$var$currentHandlerStackKey).push(handler) : handler();
-        } else console.error(`Controller '${directive.indentifier}' not found`);
+        } else console.error(`Controller '${directive.identifier}' not found`);
     };
     return wrapperHandler;
 }
@@ -1617,9 +1617,13 @@ $694a8ddd6f476c7f$var$StimulusX.init = function(application, opts = {}) {
             controllerConstructor: controllerConstructor
         });
     };
+    // Handle re-initializing reactive effects after Turbo morphing
+    document.addEventListener("turbo:before-morph-element", $694a8ddd6f476c7f$var$beforeMorphElementCallback);
+    document.addEventListener("turbo:morph-element", $694a8ddd6f476c7f$var$morphElementCallback);
+    // start watching the dom for changes
     (0, $46a1f2608b4b91f0$export$1a5ae5db40475a2d)();
-    (0, $46a1f2608b4b91f0$export$c395e4fde41c37ff)((el)=>$694a8ddd6f476c7f$var$initTree(el));
-    (0, $46a1f2608b4b91f0$export$bb8862ef847f5ec0)((el)=>$694a8ddd6f476c7f$var$destroyTree(el));
+    (0, $46a1f2608b4b91f0$export$c395e4fde41c37ff)((el)=>(0, $8d51fac66e0b4c1b$export$bdd553fddd433dcb)(()=>$694a8ddd6f476c7f$var$initTree(el)));
+    (0, $46a1f2608b4b91f0$export$bb8862ef847f5ec0)((el)=>(0, $8d51fac66e0b4c1b$export$bdd553fddd433dcb)(()=>$694a8ddd6f476c7f$var$destroyTree(el)));
     (0, $46a1f2608b4b91f0$export$545f7104b1510552)((el, attrs)=>{
         $694a8ddd6f476c7f$var$handleValueAttributes(el, attrs);
         (0, $d15872fa2e35871a$export$90a684c00f3df6ed)(el, attrs).forEach((handle)=>handle($694a8ddd6f476c7f$var$StimulusX.application));
@@ -1648,6 +1652,13 @@ function $694a8ddd6f476c7f$var$destroyTree(root) {
         (0, $46a1f2608b4b91f0$export$2c8bfe603cc113da)(el);
         delete el.__stimulusX_marker;
     });
+}
+function $694a8ddd6f476c7f$var$beforeMorphElementCallback({ target: target, detail: { newElement: newElement } }) {
+    if (!newElement && target.__stimulusX_marker) return $694a8ddd6f476c7f$var$destroyTree(target);
+    delete target.__stimulusX_marker;
+}
+function $694a8ddd6f476c7f$var$morphElementCallback({ target: target, detail: { newElement: newElement } }) {
+    if (newElement) $694a8ddd6f476c7f$var$initTree(target);
 }
 // Changes to controller value attributes in the DOM do not call
 // any properties on the controller so changes are not detected.
@@ -1824,7 +1835,7 @@ function $cb81467d4cb40cb5$var$attributeShouldntBePreservedIfFalsy(name) {
 (0, $d15872fa2e35871a$export$99b43ad1ed32e735)("text", (el, { property: property, modifiers: modifiers }, { effect: effect, evaluate: evaluate, modify: modify })=>{
     effect(()=>(0, $46a1f2608b4b91f0$export$c98382a3d82f9519)(()=>{
             const value = modify(evaluate(property), modifiers);
-            el.textContent = value;
+            el.textContent = value.toString();
         }));
 });
 

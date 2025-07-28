@@ -40,10 +40,15 @@ StimulusX.init = function (application, opts = {}) {
     });
   };
 
+  // Handle re-initializing reactive effects after Turbo morphing
+  document.addEventListener("turbo:before-morph-element", beforeMorphElementCallback);
+  document.addEventListener("turbo:morph-element", morphElementCallback);
+
+  // start watching the dom for changes
   startObservingMutations();
 
-  onElAdded((el) => initTree(el));
-  onElRemoved((el) => destroyTree(el));
+  onElAdded((el) => nextTick(() => initTree(el)));
+  onElRemoved((el) => nextTick(() => destroyTree(el)));
 
   onAttributesAdded((el, attrs) => {
     handleValueAttributes(el, attrs);
@@ -82,6 +87,17 @@ function destroyTree(root) {
     cleanupAttributes(el);
     delete el.__stimulusX_marker;
   });
+}
+
+function beforeMorphElementCallback({ target, detail: { newElement } }) {
+  if (!newElement && target.__stimulusX_marker) {
+    return destroyTree(target);
+  }
+  delete target.__stimulusX_marker;
+}
+
+function morphElementCallback({ target, detail: { newElement } }) {
+  if (newElement) initTree(target);
 }
 
 // Changes to controller value attributes in the DOM do not call
