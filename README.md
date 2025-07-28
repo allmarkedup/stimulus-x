@@ -133,7 +133,7 @@ Stimulus.register("example", ExampleController);
 
 By default, **all registered controllers** will automatically have access to StimulusX's reactive features - including [attribute bindings](#️attribute-bindings) (e.g. class names, `data-` and `aria-` attributes, `hidden` etc), [text content bindings](#text-bindings), [HTML bindings](#html-bindings) and more.
 
-### Explicit controller opt-in
+<h3 id="controller-opt-in"> Explicit controller opt-in</h3>
 
 If you **don't want to automatically enable reactivity** for all of you controllers you can instead choose to _opt-in_ to StimulusX features on a controller-by-controller basis.
 
@@ -425,6 +425,14 @@ export default class extends Controller {
 <h2 id="extending">Extending StimulusX</h2>
 
 > _Docs coming soon..._
+
+## Known issues, caveats and workarounds
+
+### ❌ Private properties and methods  
+
+Unfortunately it is not possible to use StimulusX with controllers that define [private methods or properties](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/Private_elements) (i.e. with names using the `#` prefix). [See Lea Verou's excellent blog post on the topic for more details.](https://lea.verou.me/blog/2023/04/private-fields-considered-harmful/)
+
+If you have existing controllers with private methods and want to add new StimulusX-based controllers alongside them then you should [enable explicit controller opt-in](#controller-opt-in) to prevent errors being thrown at initialization time.
 
 ## Credits and inspiration
 
