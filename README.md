@@ -98,9 +98,6 @@ export default class extends Controller {
 
 ---
 
-> [!WARNING]
-> _This project is very new. The API may still change and it has not been throughly battle-tested yet. Use with caution!_ 
-
 ## Installation
 
 Add the `stimulus-x` package to your `package.json`:
