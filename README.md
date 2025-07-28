@@ -424,6 +424,20 @@ export default class extends Controller {
 
 <h2 id="extending">Extending StimulusX</h2>
 
+### Custom modifiers
+
+You can add your own modifiers using the `StimulusX.modifier` method:
+
+```js
+StimulusX.modifier("modifierName", (value) => {
+  // Do something to `value` and return the result of the transformation.
+  const transformedValue = doSomethingTo(value);
+  return transformedValue;
+}); 
+```
+
+### Custom directives
+
 > _Docs coming soon..._
 
 ## Known issues, caveats and workarounds

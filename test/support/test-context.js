@@ -67,5 +67,5 @@ export async function createTestContext() {
     await nextTick(() => app.unload());
   }
 
-  return { testDOM, subject, teardown, performTurboStreamAction };
+  return { testDOM, subject, teardown, performTurboStreamAction, StimulusX };
 }
