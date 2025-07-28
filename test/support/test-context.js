@@ -11,7 +11,7 @@ export async function createTestContext() {
     app.register("subject", ControllerClass);
   }
 
-  async function html(html) {
+  async function testDOM(html) {
     document.body.innerHTML = html;
     return nextTick(() => getUtilities());
   }
@@ -58,15 +58,14 @@ export async function createTestContext() {
   }
 
   async function clickOnTestElement(name) {
-    console.log(getTestElement(name).getAttribute("data-test-element"));
     const user = userEvent.setup();
     return await user.click(getTestElement(name));
   }
 
-  async function reset() {
+  async function teardown() {
     document.body.innerHTML = "";
     await nextTick(() => app.unload());
   }
 
-  return { html, subject, reset, performTurboStreamAction };
+  return { testDOM, subject, teardown, performTurboStreamAction };
 }

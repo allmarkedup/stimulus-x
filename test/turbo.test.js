@@ -2,13 +2,9 @@ import { Controller } from "@hotwired/stimulus";
 import { createTestContext } from "./support/test-context";
 import "@hotwired/turbo";
 
-let context;
+let context = await createTestContext();
 
-beforeAll(async () => {
-  context = await createTestContext();
-});
-
-afterAll(() => context.reset());
+afterAll(() => context.teardown());
 
 describe("turbo actions", async () => {
   beforeAll(() =>
@@ -28,25 +24,91 @@ describe("turbo actions", async () => {
     )
   );
 
-  describe("replacing controller elements", () => {
+  describe("turbo `replace` action", () => {
     test("is still interactive after replacement", async () => {
-      const controllerHTML = `
+      const testDOM = `
         <div id="subject" data-controller="subject">
           <div data-bind-text="subject#countValue" data-test-element="count"></div>
           <button data-test-element="increment" data-action="subject#increment">+</button>
         </div>
       `;
-      let { getTestElement, clickOnTestElement } = await context.html(controllerHTML);
+      let { getTestElement, clickOnTestElement } = await context.testDOM(testDOM);
 
       expect(getTestElement("count").textContent).toBe("0");
       await clickOnTestElement("increment");
       expect(getTestElement("count").textContent).toBe("1");
 
-      await context.performTurboStreamAction("replace", "subject", controllerHTML);
+      await context.performTurboStreamAction("replace", "subject", testDOM);
 
       expect(getTestElement("count").textContent).toBe("0");
       await clickOnTestElement("increment");
       expect(getTestElement("count").textContent).toBe("1");
+    });
+
+    test("reinitializes with HTML from the stream action", async () => {
+      let { getTestElement } = await context.testDOM(`
+        <div id="subject" data-controller="subject" data-subject-count-value="2">
+          <div data-bind-text="subject#countValue" data-test-element="count"></div>
+        </div>
+      `);
+
+      expect(getTestElement("count").textContent).toBe("2");
+
+      await context.performTurboStreamAction(
+        "replace",
+        "subject",
+        `
+          <div id="subject" data-controller="subject" data-subject-count-value="5">
+            <div data-bind-text="subject#countValue" data-test-element="count"></div>
+          </div>
+        `
+      );
+
+      expect(getTestElement("count").textContent).toBe("5");
+    });
+  });
+
+  describe("turbo `morph` action", () => {
+    test("is still interactive after replacement", async () => {
+      const testDOM = `
+        <div id="subject" data-controller="subject">
+          <div data-bind-text="subject#countValue" data-test-element="count"></div>
+          <button data-test-element="increment" data-action="subject#increment">+</button>
+        </div>
+      `;
+      let { getTestElement, clickOnTestElement } = await context.testDOM(testDOM);
+
+      expect(getTestElement("count").textContent).toBe("0");
+      await clickOnTestElement("increment");
+      expect(getTestElement("count").textContent).toBe("1");
+
+      await context.performTurboStreamAction("morph", "subject", testDOM);
+
+      expect(getTestElement("count").textContent).toBe("0");
+      await clickOnTestElement("increment");
+      expect(getTestElement("count").textContent).toBe("1");
+    });
+
+    test("reinitializes with HTML from the stream action", async () => {
+      let { getTestElement } = await context.testDOM(`
+        <div id="subject" data-controller="subject" data-subject-count-value="2">
+          <div data-bind-text="subject#countValue" data-test-element="count"></div>
+        </div>
+      `);
+
+      expect(getTestElement("count").textContent).toBe("2");
+
+      await context.performTurboStreamAction(
+        "morph",
+        "subject",
+        `
+          <div id="subject" data-controller="subject" data-subject-count-value="5">
+            <div data-bind-text="subject#countValue" data-test-element="count"></div>
+          </div>
+        `
+      );
+
+      expect(getTestElement("count").textContent).toBe("5");
     });
   });
 });

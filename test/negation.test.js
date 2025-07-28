@@ -1,13 +1,9 @@
 import { Controller } from "@hotwired/stimulus";
 import { createTestContext } from "./support/test-context";
 
-let context;
+const context = await createTestContext();
 
-beforeAll(async () => {
-  context = await createTestContext();
-});
-
-afterAll(() => context.reset());
+afterAll(() => context.teardown());
 
 describe("value negation", async () => {
   beforeAll(() =>
@@ -28,7 +24,7 @@ describe("value negation", async () => {
   );
 
   test("with !", async () => {
-    const { getTestElement } = await context.html(`
+    const { getTestElement } = await context.testDOM(`
       <div data-controller="subject">
         <div data-bind-attr="hidden~!subject#noValue" data-test-element="hidden"></div>
         <div data-bind-attr="hidden~!subject#yesValue" data-test-element="not-hidden"></div>
@@ -40,7 +36,7 @@ describe("value negation", async () => {
   });
 
   test("with :not modifier", async () => {
-    const { getTestElement } = await context.html(`
+    const { getTestElement } = await context.testDOM(`
       <div data-controller="subject">
         <div data-bind-attr="hidden~subject#noValue:not" data-test-element="hidden"></div>
         <div data-bind-attr="hidden~subject#yesValue:not" data-test-element="not-hidden"></div>

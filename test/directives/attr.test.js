@@ -1,13 +1,9 @@
 import { Controller } from "@hotwired/stimulus";
 import { createTestContext } from "../support/test-context";
 
-let context;
+let context = await createTestContext();
 
-beforeAll(async () => {
-  context = await createTestContext();
-});
-
-afterAll(() => context.reset());
+afterAll(() => context.teardown());
 
 describe("string attributes", async () => {
   beforeAll(() =>
@@ -32,7 +28,7 @@ describe("string attributes", async () => {
   );
 
   test("applies the default value from controller", async () => {
-    const { getTestElement, subjectController } = await context.html(`
+    const { getTestElement, subjectController } = await context.testDOM(`
       <div data-controller="subject">
         <div data-bind-attr="data-output~subject#stringValue" data-test-element="target"></div>
       </div>
@@ -44,7 +40,7 @@ describe("string attributes", async () => {
   test("applies the default value from a value attribute", async () => {
     const stringAttrValue = "overridden default value";
 
-    const { getTestElement } = await context.html(`
+    const { getTestElement } = await context.testDOM(`
       <div data-controller="subject" data-subject-string-value="${stringAttrValue}">
         <div data-bind-attr="data-output~subject#stringValue" data-test-element="target"></div>
       </div>
@@ -54,7 +50,7 @@ describe("string attributes", async () => {
   });
 
   test("overrides the existing attribute value", async () => {
-    const { getTestElement, subjectController } = await context.html(`
+    const { getTestElement, subjectController } = await context.testDOM(`
       <div data-controller="subject">
         <div data-output="foo" data-bind-attr="data-output~subject#stringValue" data-test-element="target"></div>
       </div>
@@ -64,7 +60,7 @@ describe("string attributes", async () => {
   });
 
   test("doesn't remove attributes when the value is an empty string", async () => {
-    const { getTestElement } = await context.html(`
+    const { getTestElement } = await context.testDOM(`
       <div data-controller="subject">
         <div data-bind-attr="data-output~subject#emptyStringValue" data-test-element="target"></div>
       </div>
@@ -74,7 +70,7 @@ describe("string attributes", async () => {
   });
 
   test("updates the attribute when the value property changes", async () => {
-    const { getTestElement, subjectController } = await context.html(`
+    const { getTestElement, subjectController } = await context.testDOM(`
       <div data-controller="subject">
         <div data-bind-attr="data-output~subject#stringValue" data-test-element="target"></div>
       </div>
@@ -91,7 +87,7 @@ describe("string attributes", async () => {
   });
 
   test("multiple attribute bindings (single line)", async () => {
-    const { getTestElement, subjectController } = await context.html(`
+    const { getTestElement, subjectController } = await context.testDOM(`
       <div data-controller="subject">
         <div data-bind-attr="data-string-1~subject#stringValue data-string-2~subject#anotherStringValue" data-test-element="target"></div>
       </div>
@@ -109,7 +105,7 @@ describe("string attributes", async () => {
   });
 
   test("multiple attribute bindings (multi-line)", async () => {
-    const { getTestElement, subjectController } = await context.html(`
+    const { getTestElement, subjectController } = await context.testDOM(`
       <div data-controller="subject">
         <div
           data-bind-attr="
@@ -145,7 +141,7 @@ describe("boolean attributes", async () => {
   );
 
   test("adds or removes the attribute from the element", async () => {
-    const { getTestElement, subjectController } = await context.html(`
+    const { getTestElement, subjectController } = await context.testDOM(`
       <details data-controller="subject">
         <summary open data-bind-attr="open~subject#booleanValue" data-test-element="summary">Summary</summary>
         <div>Details</div>
@@ -205,7 +201,7 @@ describe("classes", async () => {
   );
 
   test("can resolve class objects", async () => {
-    const { getTestElement, subjectController } = await context.html(`
+    const { getTestElement, subjectController } = await context.testDOM(`
       <div data-controller="subject">
         <span data-bind-attr="class~subject#themeStylesAsObject" data-test-element="target"></span>
       </div>
@@ -219,7 +215,7 @@ describe("classes", async () => {
   });
 
   test("can resolve class arrays", async () => {
-    const { getTestElement, subjectController } = await context.html(`
+    const { getTestElement, subjectController } = await context.testDOM(`
       <div data-controller="subject">
         <span data-bind-attr="class~subject#themeStylesAsArray" data-test-element="target"></span>
       </div>
@@ -233,7 +229,7 @@ describe("classes", async () => {
   });
 
   test("can resolve class strings", async () => {
-    const { getTestElement, subjectController } = await context.html(`
+    const { getTestElement, subjectController } = await context.testDOM(`
       <div data-controller="subject">
         <span data-bind-attr="class~subject#themeStylesAsString" data-test-element="target"></span>
       </div>
@@ -247,7 +243,7 @@ describe("classes", async () => {
   });
 
   test("doesn't overwrite existing classes", async () => {
-    const { getTestElement, subjectController } = await context.html(`
+    const { getTestElement, subjectController } = await context.testDOM(`
       <div data-controller="subject">
         <span class="border-hotpink" data-bind-attr="class~subject#themeStylesAsString" data-test-element="target"></span>
       </div>

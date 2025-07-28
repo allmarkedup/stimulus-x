@@ -1,13 +1,9 @@
 import { Controller } from "@hotwired/stimulus";
 import { createTestContext } from "./support/test-context";
 
-let context;
+let context = await createTestContext();
 
-beforeAll(async () => {
-  context = await createTestContext();
-});
-
-afterAll(() => context.reset());
+afterAll(() => context.teardown());
 
 describe("applying modifiers", async () => {
   beforeAll(() =>
@@ -32,7 +28,7 @@ describe("applying modifiers", async () => {
   );
 
   test("single modifier", async () => {
-    const { getTestElement } = await context.html(`
+    const { getTestElement } = await context.testDOM(`
       <div data-controller="subject">
         <div data-bind-text="subject#mixedStringValue:upcase" data-test-element="output"></div>
       </div>
@@ -42,7 +38,7 @@ describe("applying modifiers", async () => {
   });
 
   test("chained modifiers", async () => {
-    const { getTestElement } = await context.html(`
+    const { getTestElement } = await context.testDOM(`
       <div data-controller="subject">
         <div data-bind-text="subject#mixedStringValue:upcase:downcase" data-test-element="output"></div>
       </div>

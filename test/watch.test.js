@@ -3,13 +3,10 @@ import { createTestContext } from "./support/test-context";
 
 const { spyOn, waitFor, restoreAllMocks } = vi;
 
-let context;
-beforeAll(async () => {
-  context = await createTestContext();
-});
+let context = await createTestContext();
 
 afterEach(() => restoreAllMocks());
-afterAll(() => context.reset());
+afterAll(() => context.teardown());
 
 describe("watched properties", async () => {
   beforeAll(() =>
@@ -42,7 +39,7 @@ describe("watched properties", async () => {
 
   describe("watchedPropertyChanged method", () => {
     test("is called when any watched property changes", async () => {
-      const { subjectController } = await context.html(`
+      const { subjectController } = await context.testDOM(`
         <div data-controller="subject"></div>
       `);
       const spy = spyOn(subjectController, "watchedPropertyChanged");
@@ -62,7 +59,7 @@ describe("watched properties", async () => {
     });
 
     test("isn't called when an unwatched property changes", async () => {
-      const { subjectController } = await context.html(`
+      const { subjectController } = await context.testDOM(`
         <div data-controller="subject"></div>
       `);
       const spy = spyOn(subjectController, "watchedPropertyChanged");
@@ -76,7 +73,7 @@ describe("watched properties", async () => {
 
   describe("<name>PropertyChanged method", () => {
     test("is called when the relevant property changes", async () => {
-      const { subjectController } = await context.html(`
+      const { subjectController } = await context.testDOM(`
         <div data-controller="subject"></div>
       `);
       const spy = spyOn(subjectController, "unitsPropertyChanged");
@@ -89,7 +86,7 @@ describe("watched properties", async () => {
     });
 
     test("isn't called when a different watched property changes", async () => {
-      const { subjectController } = await context.html(`
+      const { subjectController } = await context.testDOM(`
         <div data-controller="subject"></div>
       `);
       const spy = spyOn(subjectController, "unitsPropertyChanged");
