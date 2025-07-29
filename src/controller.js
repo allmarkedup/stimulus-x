@@ -1,6 +1,9 @@
 import { getProperty } from "dot-prop";
+import { application } from "./lifecycle";
 import { reactive, watch } from "./reactivity";
 import { mutateDom } from "./mutation";
+import { nextTick } from "./scheduler";
+import { initTree } from "./lifecycle";
 
 export function createReactiveControllerClass(ControllerClass) {
   return class extends ControllerClass {
@@ -21,13 +24,21 @@ export function createReactiveControllerClass(ControllerClass) {
       const watchedProps = this.constructor.watch || [];
       watchedProps.forEach((prop) => watchControllerProperty(self, prop));
 
+      this.xRefs = {};
+
       // Return the reactive controller instance
       return self;
+    }
+
+    connect() {
+      // Initialize the DOM tree and run directives when connected
+      super.connect();
+      nextTick(() => initTree(this.element));
     }
   };
 }
 
-export function getClosestController(el, identifier, application) {
+export function getClosestController(el, identifier) {
   const controllerElement = el.closest(`[data-controller~="${identifier}"]`);
   if (controllerElement) {
     return application.getControllerForElementAndIdentifier(controllerElement, identifier);

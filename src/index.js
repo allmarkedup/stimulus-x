@@ -1,11 +1,23 @@
-import StimulusX from "./stimulus-x.js";
+import { init } from "./lifecycle";
+import { modifier } from "./modifiers";
+import { directive } from "./directives";
+import { nextTick } from "./scheduler";
 
-import "./modifiers/downcase.js";
-import "./modifiers/not.js";
-import "./modifiers/strip.js";
-import "./modifiers/upcase.js";
+import "./modifiers/downcase";
+import "./modifiers/not";
+import "./modifiers/strip";
+import "./modifiers/upcase";
 
-import "./directives/attr.js";
-import "./directives/text.js";
+import "./directives/attr";
+import "./directives/text";
+
+const StimulusX = {
+  init,
+  modifier,
+  directive,
+  nextTick,
+};
 
 export default StimulusX;
+
+export { nextTick };

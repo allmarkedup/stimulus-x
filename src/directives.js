@@ -73,8 +73,8 @@ export function getDirectiveHandler(el, directive) {
 
   onAttributeRemoved(el, directive.attr, cleanup);
 
-  let wrapperHandler = (application) => {
-    let controller = getClosestController(el, directive.identifier, application);
+  let wrapperHandler = () => {
+    let controller = getClosestController(el, directive.identifier);
     if (controller) {
       if (!isReactive(controller)) {
         console.warn(

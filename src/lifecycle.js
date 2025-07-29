@@ -1,5 +1,3 @@
-import { modifier } from "./modifiers";
-import { directive } from "./directives";
 import { nextTick } from "./scheduler";
 import { createReactiveControllerClass } from "./controller";
 import { walk } from "./utils";
@@ -18,12 +16,12 @@ const defaultOptions = {
   optIn: false,
 };
 
-const StimulusX = {};
 let markerCount = 1;
+let application = null;
 
-StimulusX.init = function (application, opts = {}) {
+export function init(app, opts = {}) {
   const { optIn } = Object.assign({}, defaultOptions, opts);
-  this.application = application;
+  application = app;
 
   // Override controller registration to insert a reactive subclass instead of the original
   application.register = function (identifier, ControllerClass) {
@@ -47,41 +45,33 @@ StimulusX.init = function (application, opts = {}) {
   // start watching the dom for changes
   startObservingMutations();
 
-  onElAdded((el) => nextTick(() => initTree(el)));
+  onElAdded((el) => {
+    // Controller root elements init their own tree when connected so we can skip them.
+    // if (el.hasAttribute("data-controller")) return;
+    nextTick(() => initTree(el));
+  });
+
   onElRemoved((el) => nextTick(() => destroyTree(el)));
 
   onAttributesAdded((el, attrs) => {
     handleValueAttributes(el, attrs);
-    directives(el, attrs).forEach((handle) => handle(StimulusX.application));
+    directives(el, attrs).forEach((handle) => handle());
   });
-
-  nextTick(() => {
-    rootElements().forEach((el) => initTree(el));
-  });
-};
-
-StimulusX.modifier = modifier;
-StimulusX.directive = directive;
-
-function rootElements() {
-  return Array.from(
-    document.querySelectorAll("[data-controller]:not([data-controller] [data-controller])")
-  );
 }
 
-function initTree(el) {
+export function initTree(el) {
   deferHandlingDirectives(() => {
     walk(el, (el) => {
       if (el.__stimulusX_marker) return;
 
-      directives(el, el.attributes).forEach((handle) => handle(StimulusX.application));
+      directives(el, el.attributes).forEach((handle) => handle());
 
       el.__stimulusX_marker = markerCount++;
     });
   });
 }
 
-function destroyTree(root) {
+export function destroyTree(root) {
   walk(root, (el) => {
     cleanupElement(el);
     cleanupAttributes(el);
@@ -89,14 +79,14 @@ function destroyTree(root) {
   });
 }
 
-function beforeMorphElementCallback({ target, detail: { newElement } }) {
+export function beforeMorphElementCallback({ target, detail: { newElement } }) {
   if (!newElement && target.__stimulusX_marker) {
     return destroyTree(target);
   }
   delete target.__stimulusX_marker;
 }
 
-function morphElementCallback({ target, detail: { newElement } }) {
+export function morphElementCallback({ target, detail: { newElement } }) {
   if (newElement) initTree(target);
 }
 
@@ -124,7 +114,7 @@ function handleValueAttributes(el, attrs) {
     if (matches && matches.length) {
       const identifier = matches[1];
       const valueName = matches[2];
-      const controller = StimulusX.application.getControllerForElementAndIdentifier(el, identifier);
+      const controller = application.getControllerForElementAndIdentifier(el, identifier);
 
       mutateDom(() => {
         controller[`${valueName}Value`] = controller[`${valueName}Value`];
@@ -133,4 +123,4 @@ function handleValueAttributes(el, attrs) {
   }
 }
 
-export default StimulusX;
+export { application };

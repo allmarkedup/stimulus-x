@@ -1,13 +1,25 @@
 import { Application, Controller } from "@hotwired/stimulus";
 import StimulusX from "../dist/stimulus-x";
 import { isReactive } from "../src/reactivity";
+import { nextTick } from "./support/helpers";
+
+let app;
 
 describe("controller opt-in", async () => {
-  let app;
-
   beforeAll(async () => {
+    vi.useFakeTimers();
     app = Application.start();
     StimulusX.init(app, { optIn: true });
+
+    document.body.innerHTML = `
+        <div data-controller="unreactive">
+          <span data-bind-text="unreactive#countValue"></span>
+        </div>
+
+        <div data-controller="reactive">
+          <span data-bind-text="reactive#countValue"></span>
+        </div>
+      `;
 
     app.register(
       "unreactive",
@@ -27,21 +39,12 @@ describe("controller opt-in", async () => {
         };
       }
     );
-
-    document.body.innerHTML = `
-      <div data-controller="unreactive">
-        <span data-bind-text="unreactive#countValue"></span>
-      </div>
-
-      <div data-controller="reactive">
-        <span data-bind-text="reactive#countValue"></span>
-      </div>
-    `;
   });
 
   afterAll(() => {
     document.body.innerHTML = "";
     app.unload();
+    vi.useRealTimers();
   });
 
   describe("controllers that have _not_ opted in to reactivity", () => {
@@ -56,7 +59,7 @@ describe("controller opt-in", async () => {
 
   describe("controllers that have opted in to reactivity", () => {
     test("are reactive", () => {
-      const el = document.querySelector(`[data-controller="reactive"]`);
+      let el = document.querySelector(`[data-controller="reactive"]`);
       const controller = app.getControllerForElementAndIdentifier(el, "reactive");
 
       expect(controller).toBeInstanceOf(Controller);

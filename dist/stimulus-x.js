@@ -1,30 +1,3 @@
-const $76daf8d022148001$var$modifierHandlers = [];
-function $76daf8d022148001$export$cd4b50bb4e5c05a3(name, handler) {
-    $76daf8d022148001$var$modifierHandlers.push({
-        name: name,
-        handler: handler
-    });
-}
-function $76daf8d022148001$export$f1696300e8775372(value, modifiers = []) {
-    return modifiers.reduce((value, modifier)=>{
-        if ($76daf8d022148001$var$modifierExists(modifier)) return $76daf8d022148001$var$applyModifier(modifier, value);
-        else {
-            console.error(`Unknown modifier '${modifier}'`);
-            return value;
-        }
-    }, value);
-}
-function $76daf8d022148001$var$applyModifier(name, value) {
-    return $76daf8d022148001$var$getModifier(name).handler(value);
-}
-function $76daf8d022148001$var$modifierExists(name) {
-    return !!$76daf8d022148001$var$getModifier(name);
-}
-function $76daf8d022148001$var$getModifier(name) {
-    return $76daf8d022148001$var$modifierHandlers.find((modifier)=>modifier.name === name);
-}
-
-
 let $8d51fac66e0b4c1b$var$flushPending = false;
 let $8d51fac66e0b4c1b$var$flushing = false;
 let $8d51fac66e0b4c1b$var$queue = [];
@@ -81,175 +54,201 @@ function $8d51fac66e0b4c1b$export$e9a53d8785d6cfc9() {
 }
 
 
-let $46a1f2608b4b91f0$var$onAttributeAddeds = [];
-let $46a1f2608b4b91f0$var$onElRemoveds = [];
-let $46a1f2608b4b91f0$var$onElAddeds = [];
-let $46a1f2608b4b91f0$var$onValueAttributeChangeds = [];
-let $46a1f2608b4b91f0$var$currentlyObserving = false;
-let $46a1f2608b4b91f0$var$isCollecting = false;
-let $46a1f2608b4b91f0$var$deferredMutations = [];
-let $46a1f2608b4b91f0$var$observer = new MutationObserver($46a1f2608b4b91f0$var$onMutate);
-function $46a1f2608b4b91f0$export$c395e4fde41c37ff(callback) {
-    $46a1f2608b4b91f0$var$onElAddeds.push(callback);
+const $331937ba118c934e$var$isObject = (value)=>{
+    const type = typeof value;
+    return value !== null && (type === 'object' || type === 'function');
+};
+const $331937ba118c934e$var$isEmptyObject = (value)=>$331937ba118c934e$var$isObject(value) && Object.keys(value).length === 0;
+const $331937ba118c934e$var$disallowedKeys = new Set([
+    '__proto__',
+    'prototype',
+    'constructor'
+]);
+const $331937ba118c934e$var$digits = new Set('0123456789');
+function $331937ba118c934e$var$getPathSegments(path) {
+    const parts = [];
+    let currentSegment = '';
+    let currentPart = 'start';
+    let isIgnoring = false;
+    for (const character of path)switch(character){
+        case '\\':
+            if (currentPart === 'index') throw new Error('Invalid character in an index');
+            if (currentPart === 'indexEnd') throw new Error('Invalid character after an index');
+            if (isIgnoring) currentSegment += character;
+            currentPart = 'property';
+            isIgnoring = !isIgnoring;
+            break;
+        case '.':
+            if (currentPart === 'index') throw new Error('Invalid character in an index');
+            if (currentPart === 'indexEnd') {
+                currentPart = 'property';
+                break;
+            }
+            if (isIgnoring) {
+                isIgnoring = false;
+                currentSegment += character;
+                break;
+            }
+            if ($331937ba118c934e$var$disallowedKeys.has(currentSegment)) return [];
+            parts.push(currentSegment);
+            currentSegment = '';
+            currentPart = 'property';
+            break;
+        case '[':
+            if (currentPart === 'index') throw new Error('Invalid character in an index');
+            if (currentPart === 'indexEnd') {
+                currentPart = 'index';
+                break;
+            }
+            if (isIgnoring) {
+                isIgnoring = false;
+                currentSegment += character;
+                break;
+            }
+            if (currentPart === 'property') {
+                if ($331937ba118c934e$var$disallowedKeys.has(currentSegment)) return [];
+                parts.push(currentSegment);
+                currentSegment = '';
+            }
+            currentPart = 'index';
+            break;
+        case ']':
+            if (currentPart === 'index') {
+                parts.push(Number.parseInt(currentSegment, 10));
+                currentSegment = '';
+                currentPart = 'indexEnd';
+                break;
+            }
+            if (currentPart === 'indexEnd') throw new Error('Invalid character after an index');
+        default:
+            if (currentPart === 'index' && !$331937ba118c934e$var$digits.has(character)) throw new Error('Invalid character in an index');
+            if (currentPart === 'indexEnd') throw new Error('Invalid character after an index');
+            if (currentPart === 'start') currentPart = 'property';
+            if (isIgnoring) {
+                isIgnoring = false;
+                currentSegment += '\\';
+            }
+            currentSegment += character;
+    }
+    if (isIgnoring) currentSegment += '\\';
+    switch(currentPart){
+        case 'property':
+            if ($331937ba118c934e$var$disallowedKeys.has(currentSegment)) return [];
+            parts.push(currentSegment);
+            break;
+        case 'index':
+            throw new Error('Index was not closed');
+        case 'start':
+            parts.push('');
+            break;
+    }
+    return parts;
 }
-function $46a1f2608b4b91f0$export$bb8862ef847f5ec0(el, callback) {
-    if (typeof callback === "function") {
-        if (!el.__stimulusX_cleanups) el.__stimulusX_cleanups = [];
-        el.__stimulusX_cleanups.push(callback);
-    } else {
-        callback = el;
-        $46a1f2608b4b91f0$var$onElRemoveds.push(callback);
+function $331937ba118c934e$var$isStringIndex(object, key) {
+    if (typeof key !== 'number' && Array.isArray(object)) {
+        const index = Number.parseInt(key, 10);
+        return Number.isInteger(index) && object[index] === object[key];
+    }
+    return false;
+}
+function $331937ba118c934e$var$assertNotStringIndex(object, key) {
+    if ($331937ba118c934e$var$isStringIndex(object, key)) throw new Error('Cannot use string index');
+}
+function $331937ba118c934e$export$63ef76b19cf4a753(object, path, value) {
+    if (!$331937ba118c934e$var$isObject(object) || typeof path !== 'string') return value === undefined ? object : value;
+    const pathArray = $331937ba118c934e$var$getPathSegments(path);
+    if (pathArray.length === 0) return value;
+    for(let index = 0; index < pathArray.length; index++){
+        const key = pathArray[index];
+        if ($331937ba118c934e$var$isStringIndex(object, key)) object = index === pathArray.length - 1 ? undefined : null;
+        else object = object[key];
+        if (object === undefined || object === null) {
+            // `object` is either `undefined` or `null` so we want to stop the loop, and
+            // if this is not the last bit of the path, and
+            // if it didn't return `undefined`
+            // it would return `null` if `object` is `null`
+            // but we want `get({foo: null}, 'foo.bar')` to equal `undefined`, or the supplied value, not `null`
+            if (index !== pathArray.length - 1) return value;
+            break;
+        }
+    }
+    return object === undefined ? value : object;
+}
+function $331937ba118c934e$export$a41c68a4eb5ff164(object, path, value) {
+    if (!$331937ba118c934e$var$isObject(object) || typeof path !== 'string') return object;
+    const root = object;
+    const pathArray = $331937ba118c934e$var$getPathSegments(path);
+    for(let index = 0; index < pathArray.length; index++){
+        const key = pathArray[index];
+        $331937ba118c934e$var$assertNotStringIndex(object, key);
+        if (index === pathArray.length - 1) object[key] = value;
+        else if (!$331937ba118c934e$var$isObject(object[key])) object[key] = typeof pathArray[index + 1] === 'number' ? [] : {};
+        object = object[key];
+    }
+    return root;
+}
+function $331937ba118c934e$export$2fae62fb628b9c68(object, path) {
+    if (!$331937ba118c934e$var$isObject(object) || typeof path !== 'string') return false;
+    const pathArray = $331937ba118c934e$var$getPathSegments(path);
+    for(let index = 0; index < pathArray.length; index++){
+        const key = pathArray[index];
+        $331937ba118c934e$var$assertNotStringIndex(object, key);
+        if (index === pathArray.length - 1) {
+            delete object[key];
+            return true;
+        }
+        object = object[key];
+        if (!$331937ba118c934e$var$isObject(object)) return false;
     }
 }
-function $46a1f2608b4b91f0$export$545f7104b1510552(callback) {
-    $46a1f2608b4b91f0$var$onAttributeAddeds.push(callback);
+function $331937ba118c934e$export$bf9617eaf5d2451(object, path) {
+    if (!$331937ba118c934e$var$isObject(object) || typeof path !== 'string') return false;
+    const pathArray = $331937ba118c934e$var$getPathSegments(path);
+    if (pathArray.length === 0) return false;
+    for (const key of pathArray){
+        if (!$331937ba118c934e$var$isObject(object) || !(key in object) || $331937ba118c934e$var$isStringIndex(object, key)) return false;
+        object = object[key];
+    }
+    return true;
 }
-function $46a1f2608b4b91f0$export$5d89a587b01747c6(el, name, callback) {
-    if (!el.__stimulusX_attributeCleanups) el.__stimulusX_attributeCleanups = {};
-    if (!el.__stimulusX_attributeCleanups[name]) el.__stimulusX_attributeCleanups[name] = [];
-    el.__stimulusX_attributeCleanups[name].push(callback);
+function $331937ba118c934e$export$b36556ce4a09dde6(path) {
+    if (typeof path !== 'string') throw new TypeError('Expected a string');
+    return path.replaceAll(/[\\.[]/g, '\\$&');
 }
-function $46a1f2608b4b91f0$export$309d6f15c1c4d36e(callback) {
-    $46a1f2608b4b91f0$var$onValueAttributeChangeds.push(callback);
-}
-function $46a1f2608b4b91f0$export$2c8bfe603cc113da(el, names) {
-    if (!el.__stimulusX_attributeCleanups) return;
-    Object.entries(el.__stimulusX_attributeCleanups).forEach(([name, value])=>{
-        if (names === undefined || names.includes(name)) {
-            value.forEach((i)=>i());
-            delete el.__stimulusX_attributeCleanups[name];
-        }
-    });
-}
-function $46a1f2608b4b91f0$export$21fc366069a4f56f(el) {
-    el.__stimulusX_cleanups?.forEach((0, $8d51fac66e0b4c1b$export$edbe2d8b64bcb07c));
-    while(el.__stimulusX_cleanups?.length)el.__stimulusX_cleanups.pop()();
-}
-function $46a1f2608b4b91f0$export$1a5ae5db40475a2d() {
-    $46a1f2608b4b91f0$var$observer.observe(document, {
-        subtree: true,
-        childList: true,
-        attributes: true,
-        attributeOldValue: true
-    });
-    $46a1f2608b4b91f0$var$currentlyObserving = true;
-}
-function $46a1f2608b4b91f0$export$d4f6b05796af6998() {
-    $46a1f2608b4b91f0$export$2f1f1886cd00d96e();
-    $46a1f2608b4b91f0$var$observer.disconnect();
-    $46a1f2608b4b91f0$var$currentlyObserving = false;
-}
-let $46a1f2608b4b91f0$var$queuedMutations = [];
-function $46a1f2608b4b91f0$export$2f1f1886cd00d96e() {
-    let records = $46a1f2608b4b91f0$var$observer.takeRecords();
-    $46a1f2608b4b91f0$var$queuedMutations.push(()=>records.length > 0 && $46a1f2608b4b91f0$var$onMutate(records));
-    let queueLengthWhenTriggered = $46a1f2608b4b91f0$var$queuedMutations.length;
-    queueMicrotask(()=>{
-        // If these two lengths match, then we KNOW that this is the LAST
-        // flush in the current event loop. This way, we can process
-        // all mutations in one batch at the end of everything...
-        if ($46a1f2608b4b91f0$var$queuedMutations.length === queueLengthWhenTriggered) // Now Alpine can process all the mutations...
-        while($46a1f2608b4b91f0$var$queuedMutations.length > 0)$46a1f2608b4b91f0$var$queuedMutations.shift()();
-    });
-}
-function $46a1f2608b4b91f0$export$c98382a3d82f9519(callback) {
-    if (!$46a1f2608b4b91f0$var$currentlyObserving) return callback();
-    $46a1f2608b4b91f0$export$d4f6b05796af6998();
-    let result = callback();
-    $46a1f2608b4b91f0$export$1a5ae5db40475a2d();
+// The keys returned by Object.entries() for arrays are strings
+function $331937ba118c934e$var$entries(value) {
+    const result = Object.entries(value);
+    if (Array.isArray(value)) return result.map(([key, value])=>[
+            Number(key),
+            value
+        ]);
     return result;
 }
-function $46a1f2608b4b91f0$export$9a7d8d7577dd8469() {
-    $46a1f2608b4b91f0$var$isCollecting = true;
+function $331937ba118c934e$var$stringifyPath(pathSegments) {
+    let result = '';
+    for (let [index, segment] of $331937ba118c934e$var$entries(pathSegments))if (typeof segment === 'number') result += `[${segment}]`;
+    else {
+        segment = $331937ba118c934e$export$b36556ce4a09dde6(segment);
+        result += index === 0 ? segment : `.${segment}`;
+    }
+    return result;
 }
-function $46a1f2608b4b91f0$export$47d46026c1b12c48() {
-    $46a1f2608b4b91f0$var$isCollecting = false;
-    $46a1f2608b4b91f0$var$onMutate($46a1f2608b4b91f0$var$deferredMutations);
-    $46a1f2608b4b91f0$var$deferredMutations = [];
-}
-function $46a1f2608b4b91f0$var$onMutate(mutations) {
-    if ($46a1f2608b4b91f0$var$isCollecting) {
-        $46a1f2608b4b91f0$var$deferredMutations = $46a1f2608b4b91f0$var$deferredMutations.concat(mutations);
+function* $331937ba118c934e$var$deepKeysIterator(object, currentPath = []) {
+    if (!$331937ba118c934e$var$isObject(object) || $331937ba118c934e$var$isEmptyObject(object)) {
+        if (currentPath.length > 0) yield $331937ba118c934e$var$stringifyPath(currentPath);
         return;
     }
-    let addedNodes = [];
-    let removedNodes = new Set();
-    let addedAttributes = new Map();
-    let removedAttributes = new Map();
-    for(let i = 0; i < mutations.length; i++){
-        if (mutations[i].target.__stimulusX_ignoreMutationObserver) continue;
-        if (mutations[i].type === "childList") {
-            mutations[i].removedNodes.forEach((node)=>{
-                if (node.nodeType !== 1) return;
-                // No need to process removed nodes that haven't been initialized by Alpine...
-                if (!node.__stimulusX_marker) return;
-                removedNodes.add(node);
-            });
-            mutations[i].addedNodes.forEach((node)=>{
-                if (node.nodeType !== 1) return;
-                // If the node is a removal as well, that means it's a "move" operation and we'll leave it alone...
-                if (removedNodes.has(node)) {
-                    removedNodes.delete(node);
-                    return;
-                }
-                // If the node has already been initialized, we'll leave it alone...
-                if (node.__stimulusX_marker) return;
-                addedNodes.push(node);
-            });
-        }
-        if (mutations[i].type === "attributes") {
-            let el = mutations[i].target;
-            let name = mutations[i].attributeName;
-            let oldValue = mutations[i].oldValue;
-            let add = ()=>{
-                if (!addedAttributes.has(el)) addedAttributes.set(el, []);
-                addedAttributes.get(el).push({
-                    name: name,
-                    value: el.getAttribute(name)
-                });
-            };
-            let remove = ()=>{
-                if (!removedAttributes.has(el)) removedAttributes.set(el, []);
-                removedAttributes.get(el).push(name);
-            };
-            // let valueAttributeChanged = () => {
-            // };
-            // New attribute.
-            if (el.hasAttribute(name) && oldValue === null) add();
-            else if (el.hasAttribute(name)) {
-                remove();
-                add();
-            // Removed attribute.
-            } else remove();
-        }
-    }
-    removedAttributes.forEach((attrs, el)=>{
-        $46a1f2608b4b91f0$export$2c8bfe603cc113da(el, attrs);
-    });
-    addedAttributes.forEach((attrs, el)=>{
-        $46a1f2608b4b91f0$var$onAttributeAddeds.forEach((i)=>i(el, attrs));
-    });
-    // There are two special scenarios we need to account for when using the mutation
-    // observer to init and destroy elements. First, when a node is "moved" on the page,
-    // it's registered as both an "add" and a "remove", so we want to skip those.
-    // (This is handled above by the .__stimulusX_marker conditionals...)
-    // Second, when a node is "wrapped", it gets registered as a "removal" and the wrapper
-    // as an "addition". We don't want to remove, then re-initialize the node, so we look
-    // and see if it's inside any added nodes (wrappers) and skip it.
-    // (This is handled below by the .contains conditional...)
-    for (let node of removedNodes){
-        if (addedNodes.some((i)=>i.contains(node))) continue;
-        $46a1f2608b4b91f0$var$onElRemoveds.forEach((i)=>i(node));
-    }
-    for (let node of addedNodes){
-        if (!node.isConnected) continue;
-        $46a1f2608b4b91f0$var$onElAddeds.forEach((i)=>i(node));
-    }
-    addedNodes = null;
-    removedNodes = null;
-    addedAttributes = null;
-    removedAttributes = null;
+    for (const [key, value] of $331937ba118c934e$var$entries(object))yield* $331937ba118c934e$var$deepKeysIterator(value, [
+        ...currentPath,
+        key
+    ]);
 }
+function $331937ba118c934e$export$13f626a1d0c23ea1(object) {
+    return [
+        ...$331937ba118c934e$var$deepKeysIterator(object)
+    ];
+}
+
 
 
 /**
@@ -1213,201 +1212,175 @@ function $370754aea5bc9e6a$export$3db5d71bdb2d5499(getter, callback) {
 
 
 
-const $331937ba118c934e$var$isObject = (value)=>{
-    const type = typeof value;
-    return value !== null && (type === 'object' || type === 'function');
-};
-const $331937ba118c934e$var$isEmptyObject = (value)=>$331937ba118c934e$var$isObject(value) && Object.keys(value).length === 0;
-const $331937ba118c934e$var$disallowedKeys = new Set([
-    '__proto__',
-    'prototype',
-    'constructor'
-]);
-const $331937ba118c934e$var$digits = new Set('0123456789');
-function $331937ba118c934e$var$getPathSegments(path) {
-    const parts = [];
-    let currentSegment = '';
-    let currentPart = 'start';
-    let isIgnoring = false;
-    for (const character of path)switch(character){
-        case '\\':
-            if (currentPart === 'index') throw new Error('Invalid character in an index');
-            if (currentPart === 'indexEnd') throw new Error('Invalid character after an index');
-            if (isIgnoring) currentSegment += character;
-            currentPart = 'property';
-            isIgnoring = !isIgnoring;
-            break;
-        case '.':
-            if (currentPart === 'index') throw new Error('Invalid character in an index');
-            if (currentPart === 'indexEnd') {
-                currentPart = 'property';
-                break;
-            }
-            if (isIgnoring) {
-                isIgnoring = false;
-                currentSegment += character;
-                break;
-            }
-            if ($331937ba118c934e$var$disallowedKeys.has(currentSegment)) return [];
-            parts.push(currentSegment);
-            currentSegment = '';
-            currentPart = 'property';
-            break;
-        case '[':
-            if (currentPart === 'index') throw new Error('Invalid character in an index');
-            if (currentPart === 'indexEnd') {
-                currentPart = 'index';
-                break;
-            }
-            if (isIgnoring) {
-                isIgnoring = false;
-                currentSegment += character;
-                break;
-            }
-            if (currentPart === 'property') {
-                if ($331937ba118c934e$var$disallowedKeys.has(currentSegment)) return [];
-                parts.push(currentSegment);
-                currentSegment = '';
-            }
-            currentPart = 'index';
-            break;
-        case ']':
-            if (currentPart === 'index') {
-                parts.push(Number.parseInt(currentSegment, 10));
-                currentSegment = '';
-                currentPart = 'indexEnd';
-                break;
-            }
-            if (currentPart === 'indexEnd') throw new Error('Invalid character after an index');
-        default:
-            if (currentPart === 'index' && !$331937ba118c934e$var$digits.has(character)) throw new Error('Invalid character in an index');
-            if (currentPart === 'indexEnd') throw new Error('Invalid character after an index');
-            if (currentPart === 'start') currentPart = 'property';
-            if (isIgnoring) {
-                isIgnoring = false;
-                currentSegment += '\\';
-            }
-            currentSegment += character;
-    }
-    if (isIgnoring) currentSegment += '\\';
-    switch(currentPart){
-        case 'property':
-            if ($331937ba118c934e$var$disallowedKeys.has(currentSegment)) return [];
-            parts.push(currentSegment);
-            break;
-        case 'index':
-            throw new Error('Index was not closed');
-        case 'start':
-            parts.push('');
-            break;
-    }
-    return parts;
+let $46a1f2608b4b91f0$var$onAttributeAddeds = [];
+let $46a1f2608b4b91f0$var$onElRemoveds = [];
+let $46a1f2608b4b91f0$var$onElAddeds = [];
+let $46a1f2608b4b91f0$var$onValueAttributeChangeds = [];
+let $46a1f2608b4b91f0$var$currentlyObserving = false;
+let $46a1f2608b4b91f0$var$isCollecting = false;
+let $46a1f2608b4b91f0$var$deferredMutations = [];
+let $46a1f2608b4b91f0$var$observer = new MutationObserver($46a1f2608b4b91f0$var$onMutate);
+function $46a1f2608b4b91f0$export$c395e4fde41c37ff(callback) {
+    $46a1f2608b4b91f0$var$onElAddeds.push(callback);
 }
-function $331937ba118c934e$var$isStringIndex(object, key) {
-    if (typeof key !== 'number' && Array.isArray(object)) {
-        const index = Number.parseInt(key, 10);
-        return Number.isInteger(index) && object[index] === object[key];
+function $46a1f2608b4b91f0$export$bb8862ef847f5ec0(el, callback) {
+    if (typeof callback === "function") {
+        if (!el.__stimulusX_cleanups) el.__stimulusX_cleanups = [];
+        el.__stimulusX_cleanups.push(callback);
+    } else {
+        callback = el;
+        $46a1f2608b4b91f0$var$onElRemoveds.push(callback);
     }
-    return false;
 }
-function $331937ba118c934e$var$assertNotStringIndex(object, key) {
-    if ($331937ba118c934e$var$isStringIndex(object, key)) throw new Error('Cannot use string index');
+function $46a1f2608b4b91f0$export$545f7104b1510552(callback) {
+    $46a1f2608b4b91f0$var$onAttributeAddeds.push(callback);
 }
-function $331937ba118c934e$export$63ef76b19cf4a753(object, path, value) {
-    if (!$331937ba118c934e$var$isObject(object) || typeof path !== 'string') return value === undefined ? object : value;
-    const pathArray = $331937ba118c934e$var$getPathSegments(path);
-    if (pathArray.length === 0) return value;
-    for(let index = 0; index < pathArray.length; index++){
-        const key = pathArray[index];
-        if ($331937ba118c934e$var$isStringIndex(object, key)) object = index === pathArray.length - 1 ? undefined : null;
-        else object = object[key];
-        if (object === undefined || object === null) {
-            // `object` is either `undefined` or `null` so we want to stop the loop, and
-            // if this is not the last bit of the path, and
-            // if it didn't return `undefined`
-            // it would return `null` if `object` is `null`
-            // but we want `get({foo: null}, 'foo.bar')` to equal `undefined`, or the supplied value, not `null`
-            if (index !== pathArray.length - 1) return value;
-            break;
+function $46a1f2608b4b91f0$export$5d89a587b01747c6(el, name, callback) {
+    if (!el.__stimulusX_attributeCleanups) el.__stimulusX_attributeCleanups = {};
+    if (!el.__stimulusX_attributeCleanups[name]) el.__stimulusX_attributeCleanups[name] = [];
+    el.__stimulusX_attributeCleanups[name].push(callback);
+}
+function $46a1f2608b4b91f0$export$309d6f15c1c4d36e(callback) {
+    $46a1f2608b4b91f0$var$onValueAttributeChangeds.push(callback);
+}
+function $46a1f2608b4b91f0$export$2c8bfe603cc113da(el, names) {
+    if (!el.__stimulusX_attributeCleanups) return;
+    Object.entries(el.__stimulusX_attributeCleanups).forEach(([name, value])=>{
+        if (names === undefined || names.includes(name)) {
+            value.forEach((i)=>i());
+            delete el.__stimulusX_attributeCleanups[name];
         }
-    }
-    return object === undefined ? value : object;
+    });
 }
-function $331937ba118c934e$export$a41c68a4eb5ff164(object, path, value) {
-    if (!$331937ba118c934e$var$isObject(object) || typeof path !== 'string') return object;
-    const root = object;
-    const pathArray = $331937ba118c934e$var$getPathSegments(path);
-    for(let index = 0; index < pathArray.length; index++){
-        const key = pathArray[index];
-        $331937ba118c934e$var$assertNotStringIndex(object, key);
-        if (index === pathArray.length - 1) object[key] = value;
-        else if (!$331937ba118c934e$var$isObject(object[key])) object[key] = typeof pathArray[index + 1] === 'number' ? [] : {};
-        object = object[key];
-    }
-    return root;
+function $46a1f2608b4b91f0$export$21fc366069a4f56f(el) {
+    el.__stimulusX_cleanups?.forEach((0, $8d51fac66e0b4c1b$export$edbe2d8b64bcb07c));
+    while(el.__stimulusX_cleanups?.length)el.__stimulusX_cleanups.pop()();
 }
-function $331937ba118c934e$export$2fae62fb628b9c68(object, path) {
-    if (!$331937ba118c934e$var$isObject(object) || typeof path !== 'string') return false;
-    const pathArray = $331937ba118c934e$var$getPathSegments(path);
-    for(let index = 0; index < pathArray.length; index++){
-        const key = pathArray[index];
-        $331937ba118c934e$var$assertNotStringIndex(object, key);
-        if (index === pathArray.length - 1) {
-            delete object[key];
-            return true;
-        }
-        object = object[key];
-        if (!$331937ba118c934e$var$isObject(object)) return false;
-    }
+function $46a1f2608b4b91f0$export$1a5ae5db40475a2d() {
+    $46a1f2608b4b91f0$var$observer.observe(document, {
+        subtree: true,
+        childList: true,
+        attributes: true,
+        attributeOldValue: true
+    });
+    $46a1f2608b4b91f0$var$currentlyObserving = true;
 }
-function $331937ba118c934e$export$bf9617eaf5d2451(object, path) {
-    if (!$331937ba118c934e$var$isObject(object) || typeof path !== 'string') return false;
-    const pathArray = $331937ba118c934e$var$getPathSegments(path);
-    if (pathArray.length === 0) return false;
-    for (const key of pathArray){
-        if (!$331937ba118c934e$var$isObject(object) || !(key in object) || $331937ba118c934e$var$isStringIndex(object, key)) return false;
-        object = object[key];
-    }
-    return true;
+function $46a1f2608b4b91f0$export$d4f6b05796af6998() {
+    $46a1f2608b4b91f0$export$2f1f1886cd00d96e();
+    $46a1f2608b4b91f0$var$observer.disconnect();
+    $46a1f2608b4b91f0$var$currentlyObserving = false;
 }
-function $331937ba118c934e$export$b36556ce4a09dde6(path) {
-    if (typeof path !== 'string') throw new TypeError('Expected a string');
-    return path.replaceAll(/[\\.[]/g, '\\$&');
+let $46a1f2608b4b91f0$var$queuedMutations = [];
+function $46a1f2608b4b91f0$export$2f1f1886cd00d96e() {
+    let records = $46a1f2608b4b91f0$var$observer.takeRecords();
+    $46a1f2608b4b91f0$var$queuedMutations.push(()=>records.length > 0 && $46a1f2608b4b91f0$var$onMutate(records));
+    let queueLengthWhenTriggered = $46a1f2608b4b91f0$var$queuedMutations.length;
+    queueMicrotask(()=>{
+        // If these two lengths match, then we KNOW that this is the LAST
+        // flush in the current event loop. This way, we can process
+        // all mutations in one batch at the end of everything...
+        if ($46a1f2608b4b91f0$var$queuedMutations.length === queueLengthWhenTriggered) // Now Alpine can process all the mutations...
+        while($46a1f2608b4b91f0$var$queuedMutations.length > 0)$46a1f2608b4b91f0$var$queuedMutations.shift()();
+    });
 }
-// The keys returned by Object.entries() for arrays are strings
-function $331937ba118c934e$var$entries(value) {
-    const result = Object.entries(value);
-    if (Array.isArray(value)) return result.map(([key, value])=>[
-            Number(key),
-            value
-        ]);
+function $46a1f2608b4b91f0$export$c98382a3d82f9519(callback) {
+    if (!$46a1f2608b4b91f0$var$currentlyObserving) return callback();
+    $46a1f2608b4b91f0$export$d4f6b05796af6998();
+    let result = callback();
+    $46a1f2608b4b91f0$export$1a5ae5db40475a2d();
     return result;
 }
-function $331937ba118c934e$var$stringifyPath(pathSegments) {
-    let result = '';
-    for (let [index, segment] of $331937ba118c934e$var$entries(pathSegments))if (typeof segment === 'number') result += `[${segment}]`;
-    else {
-        segment = $331937ba118c934e$export$b36556ce4a09dde6(segment);
-        result += index === 0 ? segment : `.${segment}`;
-    }
-    return result;
+function $46a1f2608b4b91f0$export$9a7d8d7577dd8469() {
+    $46a1f2608b4b91f0$var$isCollecting = true;
 }
-function* $331937ba118c934e$var$deepKeysIterator(object, currentPath = []) {
-    if (!$331937ba118c934e$var$isObject(object) || $331937ba118c934e$var$isEmptyObject(object)) {
-        if (currentPath.length > 0) yield $331937ba118c934e$var$stringifyPath(currentPath);
+function $46a1f2608b4b91f0$export$47d46026c1b12c48() {
+    $46a1f2608b4b91f0$var$isCollecting = false;
+    $46a1f2608b4b91f0$var$onMutate($46a1f2608b4b91f0$var$deferredMutations);
+    $46a1f2608b4b91f0$var$deferredMutations = [];
+}
+function $46a1f2608b4b91f0$var$onMutate(mutations) {
+    if ($46a1f2608b4b91f0$var$isCollecting) {
+        $46a1f2608b4b91f0$var$deferredMutations = $46a1f2608b4b91f0$var$deferredMutations.concat(mutations);
         return;
     }
-    for (const [key, value] of $331937ba118c934e$var$entries(object))yield* $331937ba118c934e$var$deepKeysIterator(value, [
-        ...currentPath,
-        key
-    ]);
+    let addedNodes = [];
+    let removedNodes = new Set();
+    let addedAttributes = new Map();
+    let removedAttributes = new Map();
+    for(let i = 0; i < mutations.length; i++){
+        if (mutations[i].target.__stimulusX_ignoreMutationObserver) continue;
+        if (mutations[i].type === "childList") {
+            mutations[i].removedNodes.forEach((node)=>{
+                if (node.nodeType !== 1) return;
+                // No need to process removed nodes that haven't been initialized by Alpine...
+                if (!node.__stimulusX_marker) return;
+                removedNodes.add(node);
+            });
+            mutations[i].addedNodes.forEach((node)=>{
+                if (node.nodeType !== 1) return;
+                // If the node is a removal as well, that means it's a "move" operation and we'll leave it alone...
+                if (removedNodes.has(node)) {
+                    removedNodes.delete(node);
+                    return;
+                }
+                // If the node has already been initialized, we'll leave it alone...
+                if (node.__stimulusX_marker) return;
+                addedNodes.push(node);
+            });
+        }
+        if (mutations[i].type === "attributes") {
+            let el = mutations[i].target;
+            let name = mutations[i].attributeName;
+            let oldValue = mutations[i].oldValue;
+            let add = ()=>{
+                if (!addedAttributes.has(el)) addedAttributes.set(el, []);
+                addedAttributes.get(el).push({
+                    name: name,
+                    value: el.getAttribute(name)
+                });
+            };
+            let remove = ()=>{
+                if (!removedAttributes.has(el)) removedAttributes.set(el, []);
+                removedAttributes.get(el).push(name);
+            };
+            // let valueAttributeChanged = () => {
+            // };
+            // New attribute.
+            if (el.hasAttribute(name) && oldValue === null) add();
+            else if (el.hasAttribute(name)) {
+                remove();
+                add();
+            // Removed attribute.
+            } else remove();
+        }
+    }
+    removedAttributes.forEach((attrs, el)=>{
+        $46a1f2608b4b91f0$export$2c8bfe603cc113da(el, attrs);
+    });
+    addedAttributes.forEach((attrs, el)=>{
+        $46a1f2608b4b91f0$var$onAttributeAddeds.forEach((i)=>i(el, attrs));
+    });
+    // There are two special scenarios we need to account for when using the mutation
+    // observer to init and destroy elements. First, when a node is "moved" on the page,
+    // it's registered as both an "add" and a "remove", so we want to skip those.
+    // (This is handled above by the .__stimulusX_marker conditionals...)
+    // Second, when a node is "wrapped", it gets registered as a "removal" and the wrapper
+    // as an "addition". We don't want to remove, then re-initialize the node, so we look
+    // and see if it's inside any added nodes (wrappers) and skip it.
+    // (This is handled below by the .contains conditional...)
+    for (let node of removedNodes){
+        if (addedNodes.some((i)=>i.contains(node))) continue;
+        $46a1f2608b4b91f0$var$onElRemoveds.forEach((i)=>i(node));
+    }
+    for (let node of addedNodes){
+        if (!node.isConnected) continue;
+        $46a1f2608b4b91f0$var$onElAddeds.forEach((i)=>i(node));
+    }
+    addedNodes = null;
+    removedNodes = null;
+    addedAttributes = null;
+    removedAttributes = null;
 }
-function $331937ba118c934e$export$13f626a1d0c23ea1(object) {
-    return [
-        ...$331937ba118c934e$var$deepKeysIterator(object)
-    ];
-}
-
 
 
 
@@ -1426,14 +1399,20 @@ function $175c8aaa8bb7371e$export$d56142fa17014959(ControllerClass) {
             // Initialize watched property callbacks
             const watchedProps = this.constructor.watch || [];
             watchedProps.forEach((prop)=>$175c8aaa8bb7371e$export$dcc3676fc96ef4c(self, prop));
+            this.xRefs = {};
             // Return the reactive controller instance
             return self;
         }
+        connect() {
+            // Initialize the DOM tree and run directives when connected
+            super.connect();
+            (0, $8d51fac66e0b4c1b$export$bdd553fddd433dcb)(()=>(0, $006b25fc8628587c$export$b1432670dab450da)(this.element));
+        }
     };
 }
-function $175c8aaa8bb7371e$export$6d5f0ef1727b562e(el, identifier, application) {
+function $175c8aaa8bb7371e$export$6d5f0ef1727b562e(el, identifier) {
     const controllerElement = el.closest(`[data-controller~="${identifier}"]`);
-    if (controllerElement) return application.getControllerForElementAndIdentifier(controllerElement, identifier);
+    if (controllerElement) return (0, $006b25fc8628587c$export$8d516e055d924071).getControllerForElementAndIdentifier(controllerElement, identifier);
 }
 function $175c8aaa8bb7371e$export$121af9acc174ac93(controller, property) {
     let value = (0, $331937ba118c934e$export$63ef76b19cf4a753)(controller, property);
@@ -1468,6 +1447,52 @@ function $175c8aaa8bb7371e$var$getCamelizedPropertyRef(propertyRef) {
 function $175c8aaa8bb7371e$var$camelCase(subject) {
     return subject.toLowerCase().replace(/-(\w)/g, (match, char)=>char.toUpperCase());
 }
+
+
+function $88fd31ba9313240f$export$8a7688a96d852767(subject) {
+    return subject.replace(/:/g, "_").split("_").map((word, index)=>index === 0 ? word : word[0].toUpperCase() + word.slice(1)).join("");
+}
+function $88fd31ba9313240f$export$588732934346abbf(el, callback) {
+    let skip = false;
+    callback(el, ()=>skip = true);
+    if (skip) return;
+    let node = el.firstElementChild;
+    while(node){
+        $88fd31ba9313240f$export$588732934346abbf(node, callback, false);
+        node = node.nextElementSibling;
+    }
+}
+
+
+
+
+
+const $76daf8d022148001$var$modifierHandlers = [];
+function $76daf8d022148001$export$cd4b50bb4e5c05a3(name, handler) {
+    $76daf8d022148001$var$modifierHandlers.push({
+        name: name,
+        handler: handler
+    });
+}
+function $76daf8d022148001$export$f1696300e8775372(value, modifiers = []) {
+    return modifiers.reduce((value, modifier)=>{
+        if ($76daf8d022148001$var$modifierExists(modifier)) return $76daf8d022148001$var$applyModifier(modifier, value);
+        else {
+            console.error(`Unknown modifier '${modifier}'`);
+            return value;
+        }
+    }, value);
+}
+function $76daf8d022148001$var$applyModifier(name, value) {
+    return $76daf8d022148001$var$getModifier(name).handler(value);
+}
+function $76daf8d022148001$var$modifierExists(name) {
+    return !!$76daf8d022148001$var$getModifier(name);
+}
+function $76daf8d022148001$var$getModifier(name) {
+    return $76daf8d022148001$var$modifierHandlers.find((modifier)=>modifier.name === name);
+}
+
 
 
 let $d15872fa2e35871a$var$directiveHandlers = {};
@@ -1522,8 +1547,8 @@ function $d15872fa2e35871a$export$1dd40105af141b08(el, directive) {
     let handler = $d15872fa2e35871a$var$directiveHandlers[directive.type] || (()=>{});
     let [utilities, cleanup] = $d15872fa2e35871a$export$a51f92c9c1609d03(el);
     (0, $46a1f2608b4b91f0$export$5d89a587b01747c6)(el, directive.attr, cleanup);
-    let wrapperHandler = (application)=>{
-        let controller = (0, $175c8aaa8bb7371e$export$6d5f0ef1727b562e)(el, directive.identifier, application);
+    let wrapperHandler = ()=>{
+        let controller = (0, $175c8aaa8bb7371e$export$6d5f0ef1727b562e)(el, directive.identifier);
         if (controller) {
             if (!(0, $370754aea5bc9e6a$export$352205f445242f02)(controller)) {
                 console.warn(`StimulusX: Directive attached to non-reactive controller '${directive.identifier}'`, el);
@@ -1581,91 +1606,69 @@ function $d15872fa2e35871a$var$toParsedDirectives({ name: name, value: value }) 
 }
 
 
-
-
-function $88fd31ba9313240f$export$8a7688a96d852767(subject) {
-    return subject.replace(/:/g, "_").split("_").map((word, index)=>index === 0 ? word : word[0].toUpperCase() + word.slice(1)).join("");
-}
-function $88fd31ba9313240f$export$588732934346abbf(el, callback) {
-    let skip = false;
-    callback(el, ()=>skip = true);
-    if (skip) return;
-    let node = el.firstElementChild;
-    while(node){
-        $88fd31ba9313240f$export$588732934346abbf(node, callback, false);
-        node = node.nextElementSibling;
-    }
-}
-
-
-
-const $694a8ddd6f476c7f$var$defaultOptions = {
+const $006b25fc8628587c$var$defaultOptions = {
     optIn: false
 };
-const $694a8ddd6f476c7f$var$StimulusX = {};
-let $694a8ddd6f476c7f$var$markerCount = 1;
-$694a8ddd6f476c7f$var$StimulusX.init = function(application, opts = {}) {
-    const { optIn: optIn } = Object.assign({}, $694a8ddd6f476c7f$var$defaultOptions, opts);
-    this.application = application;
+let $006b25fc8628587c$var$markerCount = 1;
+let $006b25fc8628587c$export$8d516e055d924071 = null;
+function $006b25fc8628587c$export$2cd8252107eb640b(app, opts = {}) {
+    const { optIn: optIn } = Object.assign({}, $006b25fc8628587c$var$defaultOptions, opts);
+    $006b25fc8628587c$export$8d516e055d924071 = app;
     // Override controller registration to insert a reactive subclass instead of the original
-    application.register = function(identifier, ControllerClass) {
+    $006b25fc8628587c$export$8d516e055d924071.register = function(identifier, ControllerClass) {
         let controllerConstructor;
-        if (optIn === false || ControllerClass.reactive === true) controllerConstructor = (0, $175c8aaa8bb7371e$export$d56142fa17014959)(ControllerClass, application);
+        if (optIn === false || ControllerClass.reactive === true) controllerConstructor = (0, $175c8aaa8bb7371e$export$d56142fa17014959)(ControllerClass, $006b25fc8628587c$export$8d516e055d924071);
         else controllerConstructor = ControllerClass;
-        application.load({
+        $006b25fc8628587c$export$8d516e055d924071.load({
             identifier: identifier,
             controllerConstructor: controllerConstructor
         });
     };
     // Handle re-initializing reactive effects after Turbo morphing
-    document.addEventListener("turbo:before-morph-element", $694a8ddd6f476c7f$var$beforeMorphElementCallback);
-    document.addEventListener("turbo:morph-element", $694a8ddd6f476c7f$var$morphElementCallback);
+    document.addEventListener("turbo:before-morph-element", $006b25fc8628587c$export$24aca0785fb6fc3);
+    document.addEventListener("turbo:morph-element", $006b25fc8628587c$export$e08553505fddfb4d);
     // start watching the dom for changes
     (0, $46a1f2608b4b91f0$export$1a5ae5db40475a2d)();
-    (0, $46a1f2608b4b91f0$export$c395e4fde41c37ff)((el)=>(0, $8d51fac66e0b4c1b$export$bdd553fddd433dcb)(()=>$694a8ddd6f476c7f$var$initTree(el)));
-    (0, $46a1f2608b4b91f0$export$bb8862ef847f5ec0)((el)=>(0, $8d51fac66e0b4c1b$export$bdd553fddd433dcb)(()=>$694a8ddd6f476c7f$var$destroyTree(el)));
+    (0, $46a1f2608b4b91f0$export$c395e4fde41c37ff)((el)=>{
+        // Controller root elements init their own tree when connected so we can skip them.
+        // if (el.hasAttribute("data-controller")) return;
+        (0, $8d51fac66e0b4c1b$export$bdd553fddd433dcb)(()=>$006b25fc8628587c$export$b1432670dab450da(el));
+    });
+    (0, $46a1f2608b4b91f0$export$bb8862ef847f5ec0)((el)=>(0, $8d51fac66e0b4c1b$export$bdd553fddd433dcb)(()=>$006b25fc8628587c$export$b68acd4f72f4a123(el)));
     (0, $46a1f2608b4b91f0$export$545f7104b1510552)((el, attrs)=>{
-        $694a8ddd6f476c7f$var$handleValueAttributes(el, attrs);
-        (0, $d15872fa2e35871a$export$90a684c00f3df6ed)(el, attrs).forEach((handle)=>handle($694a8ddd6f476c7f$var$StimulusX.application));
+        $006b25fc8628587c$var$handleValueAttributes(el, attrs);
+        (0, $d15872fa2e35871a$export$90a684c00f3df6ed)(el, attrs).forEach((handle)=>handle());
     });
-    (0, $8d51fac66e0b4c1b$export$bdd553fddd433dcb)(()=>{
-        $694a8ddd6f476c7f$var$rootElements().forEach((el)=>$694a8ddd6f476c7f$var$initTree(el));
-    });
-};
-$694a8ddd6f476c7f$var$StimulusX.modifier = (0, $76daf8d022148001$export$cd4b50bb4e5c05a3);
-$694a8ddd6f476c7f$var$StimulusX.directive = (0, $d15872fa2e35871a$export$99b43ad1ed32e735);
-function $694a8ddd6f476c7f$var$rootElements() {
-    return Array.from(document.querySelectorAll("[data-controller]:not([data-controller] [data-controller])"));
 }
-function $694a8ddd6f476c7f$var$initTree(el) {
+function $006b25fc8628587c$export$b1432670dab450da(el) {
     (0, $d15872fa2e35871a$export$3d81bdeca067fd2d)(()=>{
         (0, $88fd31ba9313240f$export$588732934346abbf)(el, (el)=>{
             if (el.__stimulusX_marker) return;
-            (0, $d15872fa2e35871a$export$90a684c00f3df6ed)(el, el.attributes).forEach((handle)=>handle($694a8ddd6f476c7f$var$StimulusX.application));
-            el.__stimulusX_marker = $694a8ddd6f476c7f$var$markerCount++;
+            (0, $d15872fa2e35871a$export$90a684c00f3df6ed)(el, el.attributes).forEach((handle)=>handle());
+            el.__stimulusX_marker = $006b25fc8628587c$var$markerCount++;
         });
     });
 }
-function $694a8ddd6f476c7f$var$destroyTree(root) {
+function $006b25fc8628587c$export$b68acd4f72f4a123(root) {
     (0, $88fd31ba9313240f$export$588732934346abbf)(root, (el)=>{
         (0, $46a1f2608b4b91f0$export$21fc366069a4f56f)(el);
         (0, $46a1f2608b4b91f0$export$2c8bfe603cc113da)(el);
         delete el.__stimulusX_marker;
     });
 }
-function $694a8ddd6f476c7f$var$beforeMorphElementCallback({ target: target, detail: { newElement: newElement } }) {
-    if (!newElement && target.__stimulusX_marker) return $694a8ddd6f476c7f$var$destroyTree(target);
+function $006b25fc8628587c$export$24aca0785fb6fc3({ target: target, detail: { newElement: newElement } }) {
+    if (!newElement && target.__stimulusX_marker) return $006b25fc8628587c$export$b68acd4f72f4a123(target);
     delete target.__stimulusX_marker;
 }
-function $694a8ddd6f476c7f$var$morphElementCallback({ target: target, detail: { newElement: newElement } }) {
-    if (newElement) $694a8ddd6f476c7f$var$initTree(target);
+function $006b25fc8628587c$export$e08553505fddfb4d({ target: target, detail: { newElement: newElement } }) {
+    if (newElement) $006b25fc8628587c$export$b1432670dab450da(target);
 }
 // Changes to controller value attributes in the DOM do not call
 // any properties on the controller so changes are not detected.
 // To fix this any value attribute changes are registered by calling
 // the value setter on the proxy with the current value - the value is
 // unchanged but calling the getter triggers any related effects.
-function $694a8ddd6f476c7f$var$handleValueAttributes(el, attrs) {
+function $006b25fc8628587c$var$handleValueAttributes(el, attrs) {
     if (!el.hasAttribute("data-controller")) return;
     const controllerNames = el.getAttribute("data-controller").trim().split(" ").filter((e)=>e);
     const valueAttributeMatcher = new RegExp(`^data-(${controllerNames.join("|")})-([a-zA-Z0-9\-_]+)-value$`);
@@ -1675,14 +1678,16 @@ function $694a8ddd6f476c7f$var$handleValueAttributes(el, attrs) {
         if (matches && matches.length) {
             const identifier = matches[1];
             const valueName = matches[2];
-            const controller = $694a8ddd6f476c7f$var$StimulusX.application.getControllerForElementAndIdentifier(el, identifier);
+            const controller = $006b25fc8628587c$export$8d516e055d924071.getControllerForElementAndIdentifier(el, identifier);
             (0, $46a1f2608b4b91f0$export$c98382a3d82f9519)(()=>{
                 controller[`${valueName}Value`] = controller[`${valueName}Value`];
             });
         }
     }
 }
-var $694a8ddd6f476c7f$export$2e2bcd8739ae039 = $694a8ddd6f476c7f$var$StimulusX;
+
+
+
 
 
 
@@ -1835,13 +1840,19 @@ function $cb81467d4cb40cb5$var$attributeShouldntBePreservedIfFalsy(name) {
 (0, $d15872fa2e35871a$export$99b43ad1ed32e735)("text", (el, { property: property, modifiers: modifiers }, { effect: effect, evaluate: evaluate, modify: modify })=>{
     effect(()=>(0, $46a1f2608b4b91f0$export$c98382a3d82f9519)(()=>{
             const value = modify(evaluate(property), modifiers);
-            el.textContent = value.toString();
+            el.textContent = value?.toString();
         }));
 });
 
 
-var $d832f2ef8a5ce6ac$export$2e2bcd8739ae039 = (0, $694a8ddd6f476c7f$export$2e2bcd8739ae039);
+const $d832f2ef8a5ce6ac$var$StimulusX = {
+    init: $006b25fc8628587c$export$2cd8252107eb640b,
+    modifier: $76daf8d022148001$export$cd4b50bb4e5c05a3,
+    directive: $d15872fa2e35871a$export$99b43ad1ed32e735,
+    nextTick: $8d51fac66e0b4c1b$export$bdd553fddd433dcb
+};
+var $d832f2ef8a5ce6ac$export$2e2bcd8739ae039 = $d832f2ef8a5ce6ac$var$StimulusX;
 
 
-export {$d832f2ef8a5ce6ac$export$2e2bcd8739ae039 as default};
+export {$d832f2ef8a5ce6ac$export$2e2bcd8739ae039 as default, $8d51fac66e0b4c1b$export$bdd553fddd433dcb as nextTick};
 //# sourceMappingURL=stimulus-x.js.map
