@@ -1,7 +1,8 @@
 import { onAttributeRemoved } from "./mutation";
 import { elementBoundEffect, isReactive } from "./reactivity";
-import { applyModifiers } from "./modifiers";
+import { applyModifiers, parseModifier } from "./modifiers";
 import { getClosestController, evaluateControllerProperty } from "./controller";
+import { options } from "./lifecycle";
 
 let directiveHandlers = {};
 let isDeferringHandlers = false;
@@ -19,7 +20,16 @@ export function directiveExists(name) {
 }
 
 export function directives(el, attributes) {
-  const directives = Array.from(attributes).filter(isDirectiveAttribute).map(toParsedDirectives);
+  let directives = [];
+
+  if (el.__stimulusX_directives) {
+    console.log("using compiled directives");
+    directives = el.__stimulusX_directives;
+  } else {
+    directives = Array.from(attributes).filter(isDirectiveAttribute).map(toParsedDirectives);
+    if (options.compileDirectives) el.__stimulusX_directives = directives;
+  }
+
   return directives
     .flat()
     .filter((d) => d)
@@ -134,6 +144,8 @@ function toParsedDirectives({ name, value }) {
       valueExpression = valueExpression.slice(1);
       modifiers.push("not");
     }
+
+    modifiers = modifiers.map((m) => parseModifier(m));
 
     const identifierMatch = valueExpression.match(/^([a-zA-Z0-9\-_]+)#/);
     if (!identifierMatch) {

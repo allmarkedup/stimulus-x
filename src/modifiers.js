@@ -9,7 +9,7 @@ export function modifier(name, handler) {
 
 export function applyModifiers(value, modifiers = []) {
   return modifiers.reduce((value, modifier) => {
-    const { name, args } = parseModifierNameAndArguments(modifier);
+    const { name, args } = modifier;
     if (modifierExists(name)) {
       return applyModifier(value, name, args);
     } else {
@@ -31,7 +31,7 @@ function getModifier(name) {
   return modifierHandlers.find((modifier) => modifier.name === name);
 }
 
-function parseModifierNameAndArguments(modifier) {
+export function parseModifier(modifier) {
   const matches = modifier.match(/^([^\(]+)(?=\((?=(.*)\)$)|$)/);
 
   if (matches && typeof matches[2] !== "undefined") {

@@ -14,14 +14,18 @@ import { deferHandlingDirectives, directives } from "./directives";
 
 const defaultOptions = {
   optIn: false,
+  compileDirectives: true,
 };
 
 let markerCount = 1;
 let application = null;
+let options = defaultOptions;
 
 export function init(app, opts = {}) {
-  const { optIn } = Object.assign({}, defaultOptions, opts);
+  options = Object.assign({}, defaultOptions, opts);
   application = app;
+
+  const { optIn } = options;
 
   // Override controller registration to insert a reactive subclass instead of the original
   application.register = function (identifier, ControllerClass) {
@@ -75,6 +79,7 @@ export function destroyTree(root) {
   walk(root, (el) => {
     cleanupElement(el);
     cleanupAttributes(el);
+    delete el.__stimulusX_directives;
     delete el.__stimulusX_marker;
   });
 }
@@ -123,4 +128,4 @@ function handleValueAttributes(el, attrs) {
   }
 }
 
-export { application };
+export { application, options };
