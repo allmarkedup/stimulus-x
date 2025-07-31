@@ -375,7 +375,7 @@ function $e46f4b33a7e1fc07$export$cd4b50bb4e5c05a3(name, handler) {
 }
 function $e46f4b33a7e1fc07$export$f1696300e8775372(value, modifiers = []) {
     return modifiers.reduce((value, modifier)=>{
-        const { name: name, args: args } = $e46f4b33a7e1fc07$var$parseModifierNameAndArguments(modifier);
+        const { name: name, args: args } = modifier;
         if ($e46f4b33a7e1fc07$var$modifierExists(name)) return $e46f4b33a7e1fc07$var$applyModifier(value, name, args);
         else {
             console.error(`Unknown modifier '${modifier}'`);
@@ -392,7 +392,7 @@ function $e46f4b33a7e1fc07$var$modifierExists(name) {
 function $e46f4b33a7e1fc07$var$getModifier(name) {
     return $e46f4b33a7e1fc07$var$modifierHandlers.find((modifier)=>modifier.name === name);
 }
-function $e46f4b33a7e1fc07$var$parseModifierNameAndArguments(modifier) {
+function $e46f4b33a7e1fc07$export$b03ed9b4aed11ed(modifier) {
     const matches = modifier.match(/^([^\(]+)(?=\((?=(.*)\)$)|$)/);
     if (matches && typeof matches[2] !== "undefined") {
         const argStr = matches[2].trim();
@@ -415,6 +415,7 @@ function $e46f4b33a7e1fc07$var$parseModifierNameAndArguments(modifier) {
 
 
 
+
 let $695a1f9e83b71f7c$var$directiveHandlers = {};
 let $695a1f9e83b71f7c$var$isDeferringHandlers = false;
 let $695a1f9e83b71f7c$var$directiveHandlerStacks = new Map();
@@ -427,7 +428,12 @@ function $695a1f9e83b71f7c$export$19b57a1ea2e090cb(name) {
     return Object.keys($695a1f9e83b71f7c$var$directiveHandlers).includes(name);
 }
 function $695a1f9e83b71f7c$export$90a684c00f3df6ed(el, attributes) {
-    const directives = Array.from(attributes).filter($695a1f9e83b71f7c$var$isDirectiveAttribute).map($695a1f9e83b71f7c$var$toParsedDirectives);
+    let directives = [];
+    if (el.__stimulusX_directives) directives = el.__stimulusX_directives;
+    else {
+        directives = Array.from(attributes).filter($695a1f9e83b71f7c$var$isDirectiveAttribute).map($695a1f9e83b71f7c$var$toParsedDirectives);
+        if ((0, $85d582547429ac89$export$41c562ebe57d11e2).compileDirectives) el.__stimulusX_directives = directives;
+    }
     return directives.flat().filter((d)=>d).map((directive)=>$695a1f9e83b71f7c$export$1dd40105af141b08(el, directive));
 }
 function $695a1f9e83b71f7c$export$3d81bdeca067fd2d(callback) {
@@ -508,6 +514,7 @@ function $695a1f9e83b71f7c$var$toParsedDirectives({ name: name, value: value }) 
             valueExpression = valueExpression.slice(1);
             modifiers.push("not");
         }
+        modifiers = modifiers.map((m)=>(0, $e46f4b33a7e1fc07$export$b03ed9b4aed11ed)(m));
         const identifierMatch = valueExpression.match(/^([a-zA-Z0-9\-_]+)#/);
         if (!identifierMatch) {
             console.warn(`Invalid binding descriptor ${bindingExpression}`);
@@ -528,13 +535,16 @@ function $695a1f9e83b71f7c$var$toParsedDirectives({ name: name, value: value }) 
 
 
 const $85d582547429ac89$var$defaultOptions = {
-    optIn: false
+    optIn: false,
+    compileDirectives: true
 };
 let $85d582547429ac89$var$markerCount = 1;
 let $85d582547429ac89$export$8d516e055d924071 = null;
+let $85d582547429ac89$export$41c562ebe57d11e2 = $85d582547429ac89$var$defaultOptions;
 function $85d582547429ac89$export$2cd8252107eb640b(app, opts = {}) {
-    const { optIn: optIn } = Object.assign({}, $85d582547429ac89$var$defaultOptions, opts);
+    $85d582547429ac89$export$41c562ebe57d11e2 = Object.assign({}, $85d582547429ac89$var$defaultOptions, opts);
     $85d582547429ac89$export$8d516e055d924071 = app;
+    const { optIn: optIn } = $85d582547429ac89$export$41c562ebe57d11e2;
     // Override controller registration to insert a reactive subclass instead of the original
     $85d582547429ac89$export$8d516e055d924071.register = function(identifier, ControllerClass) {
         let controllerConstructor;
@@ -574,6 +584,7 @@ function $85d582547429ac89$export$b68acd4f72f4a123(root) {
     (0, $f3ad94c9f84f4d57$export$588732934346abbf)(root, (el)=>{
         (0, $c6f8b3abaeac122e$export$21fc366069a4f56f)(el);
         (0, $c6f8b3abaeac122e$export$2c8bfe603cc113da)(el);
+        delete el.__stimulusX_directives;
         delete el.__stimulusX_marker;
     });
 }

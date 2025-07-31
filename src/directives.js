@@ -23,7 +23,6 @@ export function directives(el, attributes) {
   let directives = [];
 
   if (el.__stimulusX_directives) {
-    console.log("using compiled directives");
     directives = el.__stimulusX_directives;
   } else {
     directives = Array.from(attributes).filter(isDirectiveAttribute).map(toParsedDirectives);

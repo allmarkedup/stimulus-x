@@ -19,7 +19,7 @@ const defaultOptions = {
 
 let markerCount = 1;
 let application = null;
-let options = defaultOptions;
+export let options = defaultOptions;
 
 export function init(app, opts = {}) {
   options = Object.assign({}, defaultOptions, opts);
@@ -128,4 +128,4 @@ function handleValueAttributes(el, attrs) {
   }
 }
 
-export { application, options };
+export { application };
