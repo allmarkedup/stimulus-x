@@ -357,6 +357,10 @@ function $f3ad94c9f84f4d57$export$588732934346abbf(el, callback) {
         node = node.nextElementSibling;
     }
 }
+function $f3ad94c9f84f4d57$export$248d38f6296296c5(x, y) {
+    const ok = Object.keys, tx = typeof x, ty = typeof y;
+    return x && y && tx === "object" && tx === ty ? ok(x).length === ok(y).length && ok(x).every((key)=>$f3ad94c9f84f4d57$export$248d38f6296296c5(x[key], y[key])) : x === y;
+}
 
 
 
@@ -371,21 +375,42 @@ function $e46f4b33a7e1fc07$export$cd4b50bb4e5c05a3(name, handler) {
 }
 function $e46f4b33a7e1fc07$export$f1696300e8775372(value, modifiers = []) {
     return modifiers.reduce((value, modifier)=>{
-        if ($e46f4b33a7e1fc07$var$modifierExists(modifier)) return $e46f4b33a7e1fc07$var$applyModifier(modifier, value);
+        const { name: name, args: args } = $e46f4b33a7e1fc07$var$parseModifierNameAndArguments(modifier);
+        if ($e46f4b33a7e1fc07$var$modifierExists(name)) return $e46f4b33a7e1fc07$var$applyModifier(value, name, args);
         else {
             console.error(`Unknown modifier '${modifier}'`);
             return value;
         }
     }, value);
 }
-function $e46f4b33a7e1fc07$var$applyModifier(name, value) {
-    return $e46f4b33a7e1fc07$var$getModifier(name).handler(value);
+function $e46f4b33a7e1fc07$var$applyModifier(value, name, args = []) {
+    return $e46f4b33a7e1fc07$var$getModifier(name).handler(value, args);
 }
 function $e46f4b33a7e1fc07$var$modifierExists(name) {
     return !!$e46f4b33a7e1fc07$var$getModifier(name);
 }
 function $e46f4b33a7e1fc07$var$getModifier(name) {
     return $e46f4b33a7e1fc07$var$modifierHandlers.find((modifier)=>modifier.name === name);
+}
+function $e46f4b33a7e1fc07$var$parseModifierNameAndArguments(modifier) {
+    const matches = modifier.match(/^([^\(]+)(?=\((?=(.*)\)$)|$)/);
+    if (matches && typeof matches[2] !== "undefined") {
+        const argStr = matches[2].trim();
+        const firstChar = argStr[0];
+        const lastChar = argStr[argStr.length - 1];
+        let argValue = null;
+        if (firstChar === "'" && lastChar === "'" || firstChar === "`" && lastChar === "`" || firstChar === `"` && lastChar === `"`) argValue = argStr.slice(1, argStr.length - 1);
+        else argValue = JSON.parse(argStr);
+        return {
+            name: matches[1],
+            args: [
+                argValue
+            ]
+        };
+    } else return {
+        name: modifier,
+        args: []
+    };
 }
 
 
@@ -470,7 +495,8 @@ function $695a1f9e83b71f7c$var$isDirectiveAttribute({ name: name }) {
 }
 function $695a1f9e83b71f7c$var$toParsedDirectives({ name: name, value: value }) {
     const type = name.match($695a1f9e83b71f7c$var$matchedAttributeRegex())[1];
-    const bindingExpressions = value.trim().split(/\s+/).filter((e)=>e);
+    const bindingExpressions = value.trim().split(/\s+(?![^\(]*\))/) // split string on all spaces not contained in parentheses
+    .filter((e)=>e);
     return bindingExpressions.map((bindingExpression)=>{
         const subjectMatch = bindingExpression.match(/^([a-zA-Z0-9\-_]+)~/);
         const subject = subjectMatch ? subjectMatch[1] : null;
@@ -587,6 +613,16 @@ function $85d582547429ac89$var$handleValueAttributes(el, attrs) {
 
 
 (0, $e46f4b33a7e1fc07$export$cd4b50bb4e5c05a3)("downcase", (value)=>value.toString().toLowerCase());
+
+
+
+
+(0, $e46f4b33a7e1fc07$export$cd4b50bb4e5c05a3)("is", (value, args = [])=>{
+    if (args.length === 0) {
+        console.warn("Missing argument for `:is` modifier");
+        return false;
+    } else return (0, $f3ad94c9f84f4d57$export$248d38f6296296c5)(value, args[0]);
+});
 
 
 

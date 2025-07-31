@@ -220,10 +220,27 @@ StimulusX provides the following built-in modifiers:
 * `:downcase` - transform text to lowercase
 * `:strip` - strip leading and trailing whitespace
 * `:not` - negate (invert) a boolean value
+* `:is(<value>)` - performs a value comparison. See below for details.
 
 > [!TIP]
 > _If you need to you can add your own **custom modifiers** -
 see [the section on extending StimulusX](#extending) for details._
+
+#### `:is(<value>)` modifier
+
+The `:is` modifier compares the resolved property value with the `<value>` provided within the parentheses, returning `true` if they match and `false` if not.
+
+It is handy for using with [boolean attribute bindings](#boolean-attributes) to conditionally add an attributes based on `String` or `Number` comparisons.
+
+```html
+<input data-bind-attr="disabled~workflow#status:is('complete')">
+```
+
+> [!NOTE]
+> _The `:is` modifier only supports simple `String`, `Number` or `Boolean` comparisons.
+
+
+
 
 <h2 id="attribute-bindings">Attribute bindings</h2>
 

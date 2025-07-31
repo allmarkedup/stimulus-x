@@ -1,5 +1,5 @@
 import { Application } from "@hotwired/stimulus";
-import StimulusX from "../../dist/stimulus-x";
+import StimulusX from "../../src";
 import { nextTick } from "./helpers";
 import userEvent from "@testing-library/user-event";
 

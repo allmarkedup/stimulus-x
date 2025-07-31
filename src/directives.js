@@ -115,7 +115,7 @@ function toParsedDirectives({ name, value }) {
   const type = name.match(matchedAttributeRegex())[1];
   const bindingExpressions = value
     .trim()
-    .split(/\s+/)
+    .split(/\s+(?![^\(]*\))/) // split string on all spaces not contained in parentheses
     .filter((e) => e);
 
   return bindingExpressions.map((bindingExpression) => {
