@@ -5,6 +5,7 @@ import { nextTick } from "./scheduler";
 
 import "./modifiers/downcase";
 import "./modifiers/is";
+import "./modifiers/is-not";
 import "./modifiers/not";
 import "./modifiers/strip";
 import "./modifiers/upcase";

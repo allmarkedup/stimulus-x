@@ -242,7 +242,8 @@ StimulusX provides the following built-in modifiers:
 * `:downcase` - transform text to lowercase
 * `:strip` - strip leading and trailing whitespace
 * `:not` - negate (invert) a boolean value
-* `:is(<value>)` - performs a value comparison. See below for details.
+* `:is(<value>)` - performs a value comparison. [More info &rarr;](#is-modifier).
+* `:isNot(<value>)` - performs a negated value comparison. [More info &rarr;](#is-not-modifier).
 
 _You can add your own **custom modifiers** if required.
 See [Extending StimulusX](#extending) for more info._
@@ -268,8 +269,12 @@ The `:is` modifier can work in combination with chained modifiers - the comparis
 <input data-bind-attr="disabled~workflow#status:upcase:is('COMPLETE')">
 ```
 
+<h4 id="is-not-modifier"><code>:isNot(&lt;value&gt;)</code></h4>
+
+The `:isNot` modifier works exactly the same as the `:is` modifier, but returns `true` if the value comparison fails and `false` if the values match.
+
 > [!IMPORTANT]
-> _The `:is` modifier only accepts simple `String`, `Number` or `Boolean` values as the modifier argument. `Object` and `Array` values are not supported._
+> _The `:is` and `:isNot` modifiers only accept simple `String`, `Number` or `Boolean` values. `Object` and `Array` values are not supported._
 
 <h2 id="attribute-bindings">Attribute bindings</h2>
 
