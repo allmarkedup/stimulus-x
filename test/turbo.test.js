@@ -34,7 +34,7 @@ describe("turbo actions", async () => {
       `;
       let { getTestElement, clickOnTestElement } = await context.testDOM(testDOM);
 
-      expect(getTestElement("count").textContent).toBe("0");
+      await vi.waitFor(() => expect(getTestElement("count").textContent).toBe("0"));
       await clickOnTestElement("increment");
       expect(getTestElement("count").textContent).toBe("1");
 
@@ -108,7 +108,7 @@ describe("turbo actions", async () => {
         `
       );
 
-      expect(getTestElement("count").textContent).toBe("5");
+      await vi.waitFor(() => expect(getTestElement("count").textContent).toBe("5"));
     });
   });
 });
