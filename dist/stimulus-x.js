@@ -626,6 +626,16 @@ function $85d582547429ac89$var$handleValueAttributes(el, attrs) {
 
 
 
+
+(0, $e46f4b33a7e1fc07$export$cd4b50bb4e5c05a3)("isNot", (value, args = [])=>{
+    if (args.length === 0) {
+        console.warn("Missing argument for `:isNot` modifier");
+        return false;
+    } else return !(0, $f3ad94c9f84f4d57$export$248d38f6296296c5)(value, args[0]);
+});
+
+
+
 (0, $e46f4b33a7e1fc07$export$cd4b50bb4e5c05a3)("not", (value)=>!value);
 
 
