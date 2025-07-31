@@ -114,6 +114,27 @@ npm i stimulus-x
 yarn add stimulus-x
 ```
 
+#### Without a bundler
+
+You can use StimulusX with native browser `module` imports by loading from it from [Skypack](https://skypack.dev):
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <script type="module">
+    import { Application } from "https://cdn.skypack.dev/@hotwired/stimulus"
+    import StimulusX from "https://cdn.skypack.dev/stimulus-x"
+
+    // ...see docs below for usage info.
+  </script>
+</head>
+<body>
+</body>
+</html>
+```
+
 ## Usage
 
 StimulusX hooks into your Stimulus application instance via the `StimulusX.init` method.
@@ -137,13 +158,13 @@ By default, **all registered controllers** will automatically have access to Sti
 
 If you **don't want to automatically enable reactivity** for all of you controllers you can instead choose to _opt-in_ to StimulusX features on a controller-by-controller basis.
 
-To enable individual controller opt-in pass `optIn: true` as an option when initializing StimulusX:
+To enable individual controller opt-in set the `optIn` option to `true` when initializing StimulusX:
 
 ```js
 StimulusX.init(Stimulus, { optIn: true }); 
 ```
 
-To enable reactive features for a controller, set the `static reactive` variable to `true` in the controller class:
+To then enable reactive features on a per-controller basis, set the `static reactive` variable to `true` in the controller class:
 
 ```js
 import { Controller } from "@hotwired/stimulus"
@@ -154,7 +175,8 @@ export default class extends Controller {
 }
 ```
 
-<h2 id="dom-bindings-overview">Reactive DOM bindings overview</h2>
+
+<h2 id="dom-bindings-overview">Reactive DOM bindings - overview</h2>
 
 [HTML attributes](#attribute-binding), [text](#text-binding) and [HTML content](#text-binding) can be tied to the value of controller properties using `data-bind-*` attributes in your HTML.
 
