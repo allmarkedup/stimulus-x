@@ -222,25 +222,32 @@ StimulusX provides the following built-in modifiers:
 * `:not` - negate (invert) a boolean value
 * `:is(<value>)` - performs a value comparison. See below for details.
 
-> [!TIP]
-> _If you need to you can add your own **custom modifiers** -
-see [the section on extending StimulusX](#extending) for details._
+_You can add your own **custom modifiers** if required.
+See [Extending StimulusX](#extending) for more info._
 
-#### `:is(<value>)` modifier
+<h4 id="is-modifier"><code>:is(&lt;value&gt;)</code></h4>
 
 The `:is` modifier compares the resolved property value with the `<value>` provided within the parentheses, returning `true` if they match and `false` if not.
 
-It is handy for using with [boolean attribute bindings](#boolean-attributes) to conditionally add an attributes based on `String` or `Number` comparisons.
+It is often handy for use with [boolean attribute binding](#boolean-attributes) to conditionally add or remove an attribute based on comparing the property value with the provided argument.
 
 ```html
 <input data-bind-attr="disabled~workflow#status:is('complete')">
 ```
 
-> [!NOTE]
-> _The `:is` modifier only supports simple `String`, `Number` or `Boolean` comparisons.
+* **String** comparison: `:is('single quoted string')`, `:is("double quoted string")`
+* **Integer** comparison: `:is(123)`
+* **Float** comparison: `:is(1.23)`
+* **Boolean** comparison: `:is(true)`, `:is(false)`
 
+The `:is` modifier can work in combination with chained modifiers - the comparison will be done against the property value _after_ it has been transformed by any other preceeding modifiers:
 
+```html
+<input data-bind-attr="disabled~workflow#status:upcase:is('COMPLETE')">
+```
 
+> [!IMPORTANT]
+> _The `:is` modifier only accepts simple `String`, `Number` or `Boolean` values as the modifier argument. `Object` and `Array` values are not supported._
 
 <h2 id="attribute-bindings">Attribute bindings</h2>
 
@@ -354,6 +361,35 @@ export default class extends Controller {
 }
 ```
 
+Boolean attribute bindings often pair nicely with the **[`:is` modifier](#is-modifier)**:
+
+```html
+<div data-controller="form">
+  <input type="text" data-action="form#checkCompleted">
+  <button data-bind-attr="disabled~form#statusValue:is('incomplete')">submit</button>
+</div>
+```
+
+```js
+export default class extends Controller {
+  static values = {
+    status: {
+      type: String,
+      default: "incomplete" // button disabled by default
+    }
+  }
+
+  // called when the text input value is changed
+  checkCompleted({ currentTarget }){
+    if (currentTarget.value?.length > 0) {
+      this.statusValue === "complete"; // button will be enabled
+    }
+  }
+}
+```
+
+
+
 <h2 id="text-bindings">Text content bindings</h2>
 
 Text content bindings connect the **`textContent`** of an element to a **controller property**. They are useful when you want to dynamically update text on the page based on controller state.
@@ -410,8 +446,6 @@ export default class extends Controller {
 
 <h2 id="watching-properties">Watching properties for changes</h2>
 
-> _Docs coming soon..._
-
 ```js
 import { Controller } from "@hotwired/stimulus"
 
@@ -439,6 +473,8 @@ export default class extends Controller {
 }
 ```
 
+🚧 _More docs coming soon..._
+
 <h2 id="extending">Extending StimulusX</h2>
 
 ### Custom modifiers
@@ -455,7 +491,7 @@ StimulusX.modifier("modifierName", (value) => {
 
 ### Custom directives
 
-> _Docs coming soon..._
+🚧 _Documentation coming soon..._
 
 ## Known issues, caveats and workarounds
 
