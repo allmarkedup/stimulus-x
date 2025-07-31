@@ -18,21 +18,39 @@ describe("value negation", async () => {
             type: Boolean,
             default: false,
           },
+          status: {
+            type: String,
+            default: "done",
+          },
         };
       }
     )
   );
 
-  test("with !", async () => {
-    const { getTestElement } = await context.testDOM(`
-      <div data-controller="subject">
-        <div data-bind-attr="hidden~!subject#noValue" data-test-element="hidden"></div>
-        <div data-bind-attr="hidden~!subject#yesValue" data-test-element="not-hidden"></div>
-      </div>
-    `);
+  describe("with !", () => {
+    test("with no modifiers", async () => {
+      const { getTestElement } = await context.testDOM(`
+        <div data-controller="subject">
+          <div data-bind-attr="hidden~!subject#noValue" data-test-element="hidden"></div>
+          <div data-bind-attr="hidden~!subject#yesValue" data-test-element="not-hidden"></div>
+        </div>
+      `);
 
-    expect(getTestElement("hidden")).toHaveAttribute("hidden");
-    expect(getTestElement("not-hidden")).not.toHaveAttribute("hidden");
+      expect(getTestElement("hidden")).toHaveAttribute("hidden");
+      expect(getTestElement("not-hidden")).not.toHaveAttribute("hidden");
+    });
+
+    test("with modifier(s) present", async () => {
+      const { getTestElement } = await context.testDOM(`
+        <div data-controller="subject">
+          <div data-bind-attr="hidden~!subject#statusValue:is('pending')" data-test-element="hidden1"></div>
+          <div data-bind-attr="hidden~!subject#statusValue:upcase:is('pending')" data-test-element="hidden2"></div>
+        </div>
+      `);
+
+      expect(getTestElement("hidden1")).toHaveAttribute("hidden");
+      expect(getTestElement("hidden2")).toHaveAttribute("hidden");
+    });
   });
 
   test("with :not modifier", async () => {
