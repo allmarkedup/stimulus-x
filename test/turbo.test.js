@@ -40,7 +40,7 @@ describe("turbo actions", async () => {
 
       await context.performTurboStreamAction("replace", "subject", testDOM);
 
-      expect(getTestElement("count").textContent).toBe("0");
+      await vi.waitFor(() => expect(getTestElement("count").textContent).toBe("0"));
       await clickOnTestElement("increment");
       expect(getTestElement("count").textContent).toBe("1");
     });
@@ -52,7 +52,7 @@ describe("turbo actions", async () => {
         </div>
       `);
 
-      expect(getTestElement("count").textContent).toBe("2");
+      await vi.waitFor(() => expect(getTestElement("count").textContent).toBe("2"));
 
       await context.performTurboStreamAction(
         "replace",
@@ -64,7 +64,7 @@ describe("turbo actions", async () => {
         `
       );
 
-      expect(getTestElement("count").textContent).toBe("5");
+      await vi.waitFor(() => expect(getTestElement("count").textContent).toBe("5"));
     });
   });
 
@@ -78,13 +78,13 @@ describe("turbo actions", async () => {
       `;
       let { getTestElement, clickOnTestElement } = await context.testDOM(testDOM);
 
-      expect(getTestElement("count").textContent).toBe("0");
+      await vi.waitFor(() => expect(getTestElement("count").textContent).toBe("0"));
       await clickOnTestElement("increment");
       expect(getTestElement("count").textContent).toBe("1");
 
       await context.performTurboStreamAction("morph", "subject", testDOM);
 
-      expect(getTestElement("count").textContent).toBe("0");
+      await vi.waitFor(() => expect(getTestElement("count").textContent).toBe("0"));
       await clickOnTestElement("increment");
       expect(getTestElement("count").textContent).toBe("1");
     });
