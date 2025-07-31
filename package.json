@@ -1,6 +1,6 @@
 {
   "name": "stimulus-x",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Reactivity engine for Stimulus",
   "author": "Mark Perkins",
   "license": "MIT",
