@@ -1,9 +1,10 @@
 import { getProperty } from "dot-prop";
 import { application } from "./lifecycle";
-import { reactive, watch } from "./reactivity";
+import { reactive, shallowReactive, watch } from "./reactivity";
 import { mutateDom } from "./mutation";
 import { nextTick } from "./scheduler";
 import { initTree } from "./lifecycle";
+import { getOption } from "./options";
 
 export function createReactiveControllerClass(ControllerClass) {
   return class extends ControllerClass {
@@ -18,16 +19,15 @@ export function createReactiveControllerClass(ControllerClass) {
       };
 
       // Create a reactive controller object
-      const self = reactive(this);
+      const trackDeep = getOption("trackDeep") || this.constructor.reactive === "deep";
+      const reactiveSelf = trackDeep ? reactive(this) : shallowReactive(this);
 
       // Initialize watched property callbacks
       const watchedProps = this.constructor.watch || [];
-      watchedProps.forEach((prop) => watchControllerProperty(self, prop));
-
-      this.xRefs = {};
+      watchedProps.forEach((prop) => watchControllerProperty(reactiveSelf, prop));
 
       // Return the reactive controller instance
-      return self;
+      return reactiveSelf;
     }
 
     connect() {

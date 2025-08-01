@@ -1,5 +1,5 @@
 import {getProperty as $5OpyM$getProperty} from "dot-prop";
-import {isReactive as $5OpyM$isReactive, reactive as $5OpyM$reactive, effect as $5OpyM$effect, stop as $5OpyM$stop} from "@vue/reactivity/dist/reactivity.esm-browser.prod.js";
+import {isReactive as $5OpyM$isReactive, reactive as $5OpyM$reactive, shallowReactive as $5OpyM$shallowReactive, effect as $5OpyM$effect, stop as $5OpyM$stop} from "@vue/reactivity/dist/reactivity.esm-browser.prod.js";
 
 let $eae25d6e66596517$var$flushPending = false;
 let $eae25d6e66596517$var$flushing = false;
@@ -63,6 +63,7 @@ function $eae25d6e66596517$export$e9a53d8785d6cfc9() {
 
 const $3ee5a2b2e05cc741$export$352205f445242f02 = (0, $5OpyM$isReactive);
 const $3ee5a2b2e05cc741$export$90a44edba14e47be = (0, $5OpyM$reactive);
+const $3ee5a2b2e05cc741$export$8d81cefd22d22260 = (0, $5OpyM$shallowReactive);
 const $3ee5a2b2e05cc741$export$dc573d8a6576cdb3 = (callback)=>(0, $5OpyM$effect)(callback, {
         scheduler: (0, $eae25d6e66596517$export$d30788f2c20241cd)((task)=>task)
     });
@@ -279,6 +280,24 @@ function $c6f8b3abaeac122e$var$onMutate(mutations) {
 
 
 
+const $50e97065b94a2e88$var$defaultOptions = {
+    optIn: false,
+    compileDirectives: true,
+    trackDeep: false
+};
+let $50e97065b94a2e88$var$options = $50e97065b94a2e88$var$defaultOptions;
+function $50e97065b94a2e88$export$6df0712d20d2cc08(key) {
+    return $50e97065b94a2e88$var$options[key];
+}
+function $50e97065b94a2e88$export$d2312e68e1f5ad00() {
+    return $50e97065b94a2e88$var$options;
+}
+function $50e97065b94a2e88$export$add91eafeaeab287(opts) {
+    $50e97065b94a2e88$var$options = Object.assign({}, $50e97065b94a2e88$var$defaultOptions, opts);
+    return $50e97065b94a2e88$var$options;
+}
+
+
 function $61c34dda51f70fa1$export$d56142fa17014959(ControllerClass) {
     return class extends ControllerClass {
         constructor(context){
@@ -290,13 +309,13 @@ function $61c34dda51f70fa1$export$d56142fa17014959(ControllerClass) {
                 (0, $c6f8b3abaeac122e$export$c98382a3d82f9519)(()=>setData.call(this.data, key, value));
             };
             // Create a reactive controller object
-            const self = (0, $3ee5a2b2e05cc741$export$90a44edba14e47be)(this);
+            const trackDeep = (0, $50e97065b94a2e88$export$6df0712d20d2cc08)("trackDeep") || this.constructor.reactive === "deep";
+            const reactiveSelf = trackDeep ? (0, $3ee5a2b2e05cc741$export$90a44edba14e47be)(this) : (0, $3ee5a2b2e05cc741$export$8d81cefd22d22260)(this);
             // Initialize watched property callbacks
             const watchedProps = this.constructor.watch || [];
-            watchedProps.forEach((prop)=>$61c34dda51f70fa1$export$dcc3676fc96ef4c(self, prop));
-            this.xRefs = {};
+            watchedProps.forEach((prop)=>$61c34dda51f70fa1$export$dcc3676fc96ef4c(reactiveSelf, prop));
             // Return the reactive controller instance
-            return self;
+            return reactiveSelf;
         }
         connect() {
             // Initialize the DOM tree and run directives when connected
@@ -432,7 +451,7 @@ function $695a1f9e83b71f7c$export$90a684c00f3df6ed(el, attributes) {
     if (el.__stimulusX_directives) directives = el.__stimulusX_directives;
     else {
         directives = Array.from(attributes).filter($695a1f9e83b71f7c$var$isDirectiveAttribute).map($695a1f9e83b71f7c$var$toParsedDirectives);
-        if ((0, $85d582547429ac89$export$41c562ebe57d11e2).compileDirectives) el.__stimulusX_directives = directives;
+        if ((0, $50e97065b94a2e88$export$6df0712d20d2cc08)("compileDirectives") === true) el.__stimulusX_directives = directives;
     }
     return directives.flat().filter((d)=>d).map((directive)=>$695a1f9e83b71f7c$export$1dd40105af141b08(el, directive));
 }
@@ -534,17 +553,12 @@ function $695a1f9e83b71f7c$var$toParsedDirectives({ name: name, value: value }) 
 }
 
 
-const $85d582547429ac89$var$defaultOptions = {
-    optIn: false,
-    compileDirectives: true
-};
+
 let $85d582547429ac89$var$markerCount = 1;
 let $85d582547429ac89$export$8d516e055d924071 = null;
-let $85d582547429ac89$export$41c562ebe57d11e2 = $85d582547429ac89$var$defaultOptions;
 function $85d582547429ac89$export$2cd8252107eb640b(app, opts = {}) {
-    $85d582547429ac89$export$41c562ebe57d11e2 = Object.assign({}, $85d582547429ac89$var$defaultOptions, opts);
+    const { optIn: optIn } = (0, $50e97065b94a2e88$export$add91eafeaeab287)(opts);
     $85d582547429ac89$export$8d516e055d924071 = app;
-    const { optIn: optIn } = $85d582547429ac89$export$41c562ebe57d11e2;
     // Override controller registration to insert a reactive subclass instead of the original
     $85d582547429ac89$export$8d516e055d924071.register = function(identifier, ControllerClass) {
         let controllerConstructor;

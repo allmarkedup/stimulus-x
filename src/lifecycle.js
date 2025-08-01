@@ -11,21 +11,14 @@ import {
   mutateDom,
 } from "./mutation";
 import { deferHandlingDirectives, directives } from "./directives";
-
-const defaultOptions = {
-  optIn: false,
-  compileDirectives: true,
-};
+import { setOptions } from "./options";
 
 let markerCount = 1;
 let application = null;
-export let options = defaultOptions;
 
 export function init(app, opts = {}) {
-  options = Object.assign({}, defaultOptions, opts);
+  const { optIn } = setOptions(opts);
   application = app;
-
-  const { optIn } = options;
 
   // Override controller registration to insert a reactive subclass instead of the original
   application.register = function (identifier, ControllerClass) {

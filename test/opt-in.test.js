@@ -1,7 +1,6 @@
 import { Application, Controller } from "@hotwired/stimulus";
 import StimulusX from "../src";
 import { isReactive } from "../src/reactivity";
-import { nextTick } from "./support/helpers";
 
 let app;
 

@@ -2,7 +2,7 @@ import { onAttributeRemoved } from "./mutation";
 import { elementBoundEffect, isReactive } from "./reactivity";
 import { applyModifiers, parseModifier } from "./modifiers";
 import { getClosestController, evaluateControllerProperty } from "./controller";
-import { options } from "./lifecycle";
+import { getOption } from "./options";
 
 let directiveHandlers = {};
 let isDeferringHandlers = false;
@@ -26,7 +26,7 @@ export function directives(el, attributes) {
     directives = el.__stimulusX_directives;
   } else {
     directives = Array.from(attributes).filter(isDirectiveAttribute).map(toParsedDirectives);
-    if (options.compileDirectives) el.__stimulusX_directives = directives;
+    if (getOption("compileDirectives") === true) el.__stimulusX_directives = directives;
   }
 
   return directives
