@@ -57,7 +57,9 @@ Below is an example of a simple `counter` controller implemented using StimulusX
   </div>
 
   <button data-action="counter#increment">⬆️</button>
-  <button data-action="counter#decrement">⬇️</button>
+  <button
+    data-bind-attr="disabled~counter#count:lte(0)"
+    data-action="counter#decrement">⬇️</button>
 </div>
 ```
 
@@ -126,8 +128,7 @@ You can use StimulusX with native browser `module` imports by loading from it fr
   <script type="module">
     import { Application } from "https://cdn.skypack.dev/@hotwired/stimulus"
     import StimulusX from "https://cdn.skypack.dev/stimulus-x"
-
-    // ...see docs below for usage info.
+    // ...see docs below for usage info
   </script>
 </head>
 <body>
@@ -156,7 +157,7 @@ By default, **all registered controllers** will automatically have access to Sti
 
 <h3 id="controller-opt-in"> Explicit controller opt-in</h3>
 
-If you **don't want to automatically enable reactivity** for all of you controllers you can instead choose to _opt-in_ to StimulusX features on a controller-by-controller basis.
+If you don't want to automatically enable reactivity for all of your controllers you can instead choose to _opt-in_ to StimulusX features on a controller-by-controller basis.
 
 To enable individual controller opt-in set the `optIn` option to `true` when initializing StimulusX:
 
@@ -174,7 +175,6 @@ export default class extends Controller {
   // ...
 }
 ```
-
 
 <h2 id="dom-bindings-overview">Reactive DOM bindings - overview</h2>
 
@@ -210,6 +210,17 @@ Bindings are specified declaratively in your HTML using `data-bind-(attr|text|ht
 > [!NOTE]
 > _If you are familiar with Stimulus [action descriptors](https://stimulus.hotwired.dev/reference/actions#descriptors) then binding descriptors should feel familiar as they have a similar role and syntax._
 
+### Value modifiers
+
+Binding _value modifiers_ are a convenient way to transform or test property values in-situ before updating the DOM.
+
+```html
+<h1 data-bind-text="article#titleValue:upcase"></h1>
+<input data-bind-attr="disabled~workflow#status:is('complete')">
+```
+
+📚 ***Read more: [Binding value modifiers &rarr;](#binding-value-modifiers)***
+
 ### Negating property values
 
 Boolean property values can be negated (inverted) by prefixing the `identifier#property` part of the binding descriptor with an exclaimation mark:.
@@ -219,62 +230,7 @@ Boolean property values can be negated (inverted) by prefixing the `identifier#p
 ```
 
 > [!NOTE]
-> _The `!` prefix is really just an more concise alternative syntax for applying the `:not` modifier._
-
-### Value modifiers
-
-Inline _value modifiers_ are a convenient way to transform property values in situ before updating the DOM.
-
-Modifiers are appended to the end of [binding descriptors](#binding-descriptors) and are separated from the descriptor (or from each other) by a `:` colon.
-
-The example below uses the `upcase` modifier to transform the title  to upper case before displaying it on the page:
-
-```html
-<h1 data-bind-text="article#titleValue:upcase"></h1>
-```
-
-> [!TIP]
-> _Multiple modifiers can be piped together one after each other, separated by colons, e.g. `article#titleValue:upcase:trim`_
-
-StimulusX provides the following built-in modifiers:
-
-* `:upcase` - transform text to uppercase
-* `:downcase` - transform text to lowercase
-* `:strip` - strip leading and trailing whitespace
-* `:not` - negate (invert) a boolean value
-* `:is(<value>)` - performs a value comparison. [More info &rarr;](#is-modifier).
-* `:isNot(<value>)` - performs a negated value comparison. [More info &rarr;](#is-not-modifier).
-
-_You can add your own **custom modifiers** if required.
-See [Extending StimulusX](#extending) for more info._
-
-<h4 id="is-modifier"><code>:is(&lt;value&gt;)</code></h4>
-
-The `:is` modifier compares the resolved property value with the `<value>` provided within the parentheses, returning `true` if they match and `false` if not.
-
-It is often handy for use with [boolean attribute binding](#boolean-attributes) to conditionally add or remove an attribute based on comparing the property value with the provided argument.
-
-```html
-<input data-bind-attr="disabled~workflow#status:is('complete')">
-```
-
-* **String** comparison: `:is('single quoted string')`, `:is("double quoted string")`
-* **Integer** comparison: `:is(123)`
-* **Float** comparison: `:is(1.23)`
-* **Boolean** comparison: `:is(true)`, `:is(false)`
-
-The `:is` modifier can work in combination with chained modifiers - the comparison will be done against the property value _after_ it has been transformed by any other preceeding modifiers:
-
-```html
-<input data-bind-attr="disabled~workflow#status:upcase:is('COMPLETE')">
-```
-
-<h4 id="is-not-modifier"><code>:isNot(&lt;value&gt;)</code></h4>
-
-The `:isNot` modifier works exactly the same as the `:is` modifier, but returns `true` if the value comparison fails and `false` if the values match.
-
-> [!IMPORTANT]
-> _The `:is` and `:isNot` modifiers only accept simple `String`, `Number` or `Boolean` values. `Object` and `Array` values are not supported._
+> _The `!` prefix is really just an more concise alternative syntax for applying [the `:not` modifier](#binding-value-modifiers)._
 
 <h2 id="attribute-bindings">Attribute bindings</h2>
 
@@ -310,6 +266,52 @@ So the image `src` attribute will initially be set to the default value of the `
 ```js
 this.srcValue = "https://kittens.com/daily-kitten.jpg"
 // <img src="https://kittens.com/daily-kitten.jpg">
+```
+
+
+### Boolean attributes
+
+[Boolean attributes](https://html.spec.whatwg.org/multipage/common-microsyntaxes.html#boolean-attributes) such as `checked`, `disabled`, `open` etc will be _added_ if the value of the property they are bound to is `true`, and _removed completely_ when it is `false`.
+
+```html
+<div data-controller="example">
+  <button data-bind-attr="disabled~example#disabledValue">submit</button>
+</div>
+```
+
+```js
+export default class extends Controller {
+  static values = {
+    disabled: Boolean
+  }
+}
+```
+
+Boolean attribute bindings often pair nicely with **[comparison modifiers](#comparison-modifiers)** such as `:is`:
+
+```html
+<div data-controller="form">
+  <input type="text" data-action="form#checkCompleted">
+  <button data-bind-attr="disabled~form#statusValue:is('incomplete')">submit</button>
+</div>
+```
+
+```js
+export default class extends Controller {
+  static values = {
+    status: {
+      type: String,
+      default: "incomplete" // button disabled by default
+    }
+  }
+
+  // called when the text input value is changed
+  checkCompleted({ currentTarget }){
+    if (currentTarget.value?.length > 0) {
+      this.statusValue === "complete"; // button will be enabled
+    }
+  }
+}
 ```
 
 ### Binding classes
@@ -370,53 +372,6 @@ export default class extends Controller {
 
 The list of class names will be resolved by merging all the class names from keys with a value of `true` and ignoring all the rest.
 
-### Boolean attributes
-
-[Boolean attributes](https://html.spec.whatwg.org/multipage/common-microsyntaxes.html#boolean-attributes) such as `checked`, `disabled`, `open` etc will be _added_ if the value of the property they are bound to is `true`, and _removed completely_ when it is `false`.
-
-```html
-<div data-controller="example">
-  <button data-bind-attr="disabled~example#disabledValue">submit</button>
-</div>
-```
-
-```js
-export default class extends Controller {
-  static values = {
-    disabled: Boolean
-  }
-}
-```
-
-Boolean attribute bindings often pair nicely with the **[`:is` modifier](#is-modifier)**:
-
-```html
-<div data-controller="form">
-  <input type="text" data-action="form#checkCompleted">
-  <button data-bind-attr="disabled~form#statusValue:is('incomplete')">submit</button>
-</div>
-```
-
-```js
-export default class extends Controller {
-  static values = {
-    status: {
-      type: String,
-      default: "incomplete" // button disabled by default
-    }
-  }
-
-  // called when the text input value is changed
-  checkCompleted({ currentTarget }){
-    if (currentTarget.value?.length > 0) {
-      this.statusValue === "complete"; // button will be enabled
-    }
-  }
-}
-```
-
-
-
 <h2 id="text-bindings">Text content bindings</h2>
 
 Text content bindings connect the **`textContent`** of an element to a **controller property**. They are useful when you want to dynamically update text on the page based on controller state.
@@ -471,6 +426,144 @@ export default class extends Controller {
 }
 ```
 
+<h2 id="binding-value-modifiers">Binding value modifiers</h2>
+
+Inline _value modifiers_ are a convenient way to transform or test property values before updating the DOM.
+
+Modifiers are appended to the end of [binding descriptors](#binding-descriptors) and are separated from the descriptor (or from each other) by a `:` colon.
+
+The example below uses the `upcase` modifier to transform the title to upper case before displaying it on the page:
+
+```html
+<h1 data-bind-text="article#titleValue:upcase"></h1>
+```
+
+> [!TIP]
+> _Multiple modifiers can be piped together one after each other, separated by colons, e.g. `article#titleValue:upcase:trim`_
+
+<h3 id="string-transform-modifiers">String transform modifiers</h3>
+
+String transform modifiers provide stackable output transformations for string values.
+
+#### Available string modifiers:
+
+* `:upcase` - transform text to uppercase
+* `:downcase` - transform text to lowercase
+* `:strip` - strip leading and trailing whitespace
+
+<h5 id="upcase-modifier"><code>:upcase</code></h5>
+
+Converts the string to uppercase.
+
+```html
+<h1 data-bind-text="article#title:upcase"></h1>
+```
+
+<h5 id="downcase-modifier"><code>:downcase</code></h5>
+
+Converts the string to lowercase.
+
+```html
+<h1 data-bind-text="article#title:downcase"></h1>
+```
+
+<h5 id="downcase-modifier"><code>:strip</code></h5>
+
+Strips leading and trailing whitespace from the string value.
+
+```html
+<h1 data-bind-text="article#title:downcase"></h1>
+```
+
+<h3 id="comparison-modifiers">Comparison modifiers</h3>
+
+_Comparison modifiers_ compare the resolved **controller property value** against a **provided test value**.
+
+```html
+<input data-bind-attr="disabled~workflow#status:is('complete')">
+```
+
+They are primarily intended for use with [boolean attribute bindings](#boolean-attributes) to conditionally add or remove attributes based on the result of value comparisons.
+
+> [!TIP]
+> _Comparison modifiers play nicely with other chained modifiers - the comparison will be done against the property value **after** it has been transformed by any other preceeding modifiers_:
+> ```html
+> <input data-bind-attr="disabled~workflow#status:upcase:is('COMPLETE')">`
+> ```
+
+#### Available comparison modifiers:
+
+* `:is(<value>)` - equality test ([read more](#is-modifier))
+* `:isNot(<value>)` - negated equality test ([read more](#is-not-modifier))
+* `:gt(<value>)` - 'greater than' test ([read more](#gt-modifier))
+* `:gte(<value>)` - 'greater than or equal to' test ([read more](#gte-modifier))
+* `:lt(<value>)` - 'less than' test ([read more](#lt-modifier))
+* `:lte(<value>)` - 'less than or equal to' test ([read more](#lte-modifier))
+
+<h5 id="is-modifier"><code>:is(&lt;value&gt;)</code></h5>
+
+The `:is` modifier compares the resolved property value with the `<value>` provided as an argument, returning `true` if they match and `false` if not.
+
+```html
+<!-- input is disabled if `workflow#status` === "complete" -->
+<input data-bind-attr="disabled~workflow#status:is('complete')">
+```
+
+* **String** comparison: `:is('single quoted string')`, `:is("double quoted string")`
+* **Integer** comparison: `:is(123)`
+* **Float** comparison: `:is(1.23)`
+* **Boolean** comparison: `:is(true)`, `:is(false)`
+
+<h5 id="is-not-modifier"><code>:isNot(&lt;value&gt;)</code></h5>
+
+The `:isNot` modifier works exactly the same as the [`:is` modifier](#is-modifier), but returns `true` if the value comparison fails and `false` if the values match.
+
+> [!IMPORTANT]
+> _The `:is` and `:isNot` modifiers only accept simple `String`, `Number` or `Boolean` values. `Object` and `Array` values are not supported._
+
+<h5 id="gt-modifier"><code>:gt(&lt;value&gt;)</code></h5>
+
+The `:gt` modifier returns `true` if the resolved property value is **greater than** the numeric `<value>` provided as an argument.
+
+```html
+<!-- button is disabled if `counter#count` is > 9 -->
+<button data-bind-attr="disabled~counter#count:gt(9)">+</button>
+```
+
+<h5 id="gte-modifier"><code>:gte(&lt;value&gt;)</code></h5>
+
+The `:gte` modifier returns `true` if the resolved property value is **greater than or equal to** the numeric `<value>` provided as an argument.
+
+```html
+<!-- button is disabled if `counter#count` is >= 10 -->
+<button data-bind-attr="disabled~counter#count:gte(10)">+</button>
+```
+
+<h5 id="lt-modifier"><code>:lt(&lt;value&gt;)</code></h5>
+
+The `:lt` modifier returns `true` if the resolved property value is **less than** the numeric `<value>` provided as an argument.
+
+```html
+<!-- button is disabled if `counter#count` is < 1 -->
+<button data-bind-attr="disabled~counter#count:lt(1)">-</button>
+```
+
+<h5 id="lte-modifier"><code>:lte(&lt;value&gt;)</code></h5>
+
+The `:lte` modifier returns `true` if the resolved property value is **less than or equal to** the numeric `<value>` provided as an argument.
+
+```html
+<!-- button is disabled if `counter#count` is <= 0 -->
+<button data-bind-attr="disabled~counter#count:lte(0)">-</button>
+```
+
+<h3 id="other-modifiers">Other modifiers</h3>
+
+* `:not` - negate (invert) a boolean value
+
+> [!TIP]
+> _You can add your own **custom modifiers** if required. See [Extending StimulusX](#extending) for more info._
+
 <h2 id="watching-properties">Watching properties for changes</h2>
 
 ```js
@@ -501,6 +594,7 @@ export default class extends Controller {
 ```
 
 🚧 _More docs coming soon..._
+
 
 <h2 id="extending">Extending StimulusX</h2>
 

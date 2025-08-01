@@ -627,6 +627,26 @@ function $85d582547429ac89$var$handleValueAttributes(el, attrs) {
 
 
 
+(0, $e46f4b33a7e1fc07$export$cd4b50bb4e5c05a3)("gt", (value, args = [])=>{
+    if (args.length === 0) {
+        console.warn("Missing argument for `:gt` modifier");
+        return false;
+    }
+    return value > args[0];
+});
+
+
+
+(0, $e46f4b33a7e1fc07$export$cd4b50bb4e5c05a3)("gte", (value, args = [])=>{
+    if (args.length === 0) {
+        console.warn("Missing argument for `:gte` modifier");
+        return false;
+    }
+    return value >= args[0];
+});
+
+
+
 
 (0, $e46f4b33a7e1fc07$export$cd4b50bb4e5c05a3)("is", (value, args = [])=>{
     if (args.length === 0) {
@@ -643,6 +663,26 @@ function $85d582547429ac89$var$handleValueAttributes(el, attrs) {
         console.warn("Missing argument for `:isNot` modifier");
         return false;
     } else return !(0, $f3ad94c9f84f4d57$export$248d38f6296296c5)(value, args[0]);
+});
+
+
+
+(0, $e46f4b33a7e1fc07$export$cd4b50bb4e5c05a3)("lt", (value, args = [])=>{
+    if (args.length === 0) {
+        console.warn("Missing argument for `:lt` modifier");
+        return false;
+    }
+    return value < args[0];
+});
+
+
+
+(0, $e46f4b33a7e1fc07$export$cd4b50bb4e5c05a3)("lte", (value, args = [])=>{
+    if (args.length === 0) {
+        console.warn("Missing argument for `:lte` modifier");
+        return false;
+    }
+    return value <= args[0];
 });
 
 
