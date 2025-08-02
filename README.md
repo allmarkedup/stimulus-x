@@ -49,7 +49,7 @@ Below is an example of a simple `counter` controller implemented using StimulusX
 
   <button data-action="counter#increment">⬆️</button>
   <button
-    data-bind-attr="disabled~counter#countValue:lte(0)"
+    data-bind-attr="disabled~counter#count:lte(0)"
     data-action="counter#decrement"
   >⬇️</button>
 </div>
@@ -60,30 +60,27 @@ Below is an example of a simple `counter` controller implemented using StimulusX
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static values = {
-    count: Number,
-    max: {
-      type: Number,
-      default: 5
-    }
+  initialize(){
+    this.count = 0;
+    this.max = 5;
   }
 
   increment(){
-    this.countValue++;
+    this.count++;
   }
 
   decrement(){
-    this.countValue--;
+    this.count--;
   }
 
   get displayText(){
-    return `${this.countValue} of ${this.maxValue}`;
+    return `${this.count} of ${this.max}`;
   }
 
   get textClasses(){
     return {
-      "text-green": this.countValue <= this.maxValue,
-      "text-red font-bold": this.countValue > this.maxValue,
+      "text-green": this.count <= this.max,
+      "text-red font-bold": this.count > this.max,
     }
   }  
 }
@@ -180,8 +177,8 @@ Bindings are specified declaratively in your HTML using `data-bind-(attr|text|ht
 **Attribute** binding descriptors take the form `attribute~identifier#property` where `attribute` is the name of the **HTML attribute** to set, `identifier` is the **controller identifier** and `property` is the **name of the property** to bind to.
 
 ```html
-<!-- keep the `src` attribute value in sync with the value of the lightbox controller `.imageUrlValue` property -->
-<img data-bind-attr="src~lightbox#imageUrlValue">
+<!-- keep the `src` attribute value in sync with the value of the lightbox controller `.imageUrl` property -->
+<img data-bind-attr="src~lightbox#imageUrl">
 ```
 
 📚 ***Read more: [Attribute bindings &rarr;](#attribute-binding)***
@@ -189,8 +186,8 @@ Bindings are specified declaratively in your HTML using `data-bind-(attr|text|ht
 **Text** and **HTML** binding descriptors take the form `identifier#property` where `identifier` is the **controller identifier** and `property` is the **name of the property** to bind to.
 
 ```html
-<!-- keep `element.textContent` in sync with the value of the article controller `.titleValue` property -->
-<h1 data-bind-text="article#titleValue"></h1>
+<!-- keep `element.textContent` in sync with the value of the article controller `.title` property -->
+<h1 data-bind-text="article#title"></h1>
 
 <!-- keep `element.innerHTML` in sync with the value of the article controller `.proseContent` property -->
 <div data-bind-html="article#proseContent"></div>
@@ -206,7 +203,7 @@ Bindings are specified declaratively in your HTML using `data-bind-(attr|text|ht
 Binding _value modifiers_ are a convenient way to transform or test property values in-situ before updating the DOM.
 
 ```html
-<h1 data-bind-text="article#titleValue:upcase"></h1>
+<h1 data-bind-text="article#title:upcase"></h1>
 <input data-bind-attr="disabled~workflow#status:is('complete')">
 ```
 
@@ -252,31 +249,28 @@ They are specified using `data-bind-attr` attributes with [value descriptors](#b
 
 ```html
 <div data-controller="lightbox">
-  <img data-bind-attr="src~lightbox#srcValue">
+  <img data-bind-attr="src~lightbox#imageUrl">
 </div>
 ```
 
 ```js
 export default class extends Controller {
-  static values = {
-    src: {
-      type: String,
-      default: "https://placeholder.com/kittens.jpg"
-    }
+  initialize(){
+    this.imageUrl = "https://placeholder.com/kittens.jpg";
   }
 }
 ```
 
-In the attribute binding descriptor `src~lightbox#srcValue` above:
+In the attribute binding descriptor `src~lightbox#imageUrl` above:
 
 * `src` is the **HTML attribute** to be added/updated/remove
 * `lightbox` is the **controller identifier**
-* `srcValue` is the **name of the property** that the attribute value should be bound to
+* `imageUrl` is the **name of the property** that the attribute value should be bound to
 
-So the image `src` attribute will initially be set to the default value of the `srcValue` property (i.e. `https://placeholder.com/kittens.jpg`). And whenever the `srcValue` property is changed, the image `src` attribute value in the DOM will be automatically updated to reflect the new value.
+So the image `src` attribute will initially be set to the default value of the `imageUrl` property (i.e. `https://placeholder.com/kittens.jpg`). And whenever the `imageUrl` property is changed, the image `src` attribute value in the DOM will be automatically updated to reflect the new value.
 
 ```js
-this.srcValue = "https://kittens.com/daily-kitten.jpg"
+this.imageUrl = "https://kittens.com/daily-kitten.jpg"
 // <img src="https://kittens.com/daily-kitten.jpg">
 ```
 
@@ -287,14 +281,14 @@ this.srcValue = "https://kittens.com/daily-kitten.jpg"
 
 ```html
 <div data-controller="example">
-  <button data-bind-attr="disabled~example#disabledValue">submit</button>
+  <button data-bind-attr="disabled~example#incomplete">submit</button>
 </div>
 ```
 
 ```js
 export default class extends Controller {
-  static values = {
-    disabled: Boolean
+  initialize(){
+    this.incomplete = true;
   }
 }
 ```
@@ -304,23 +298,20 @@ Boolean attribute bindings often pair nicely with **[comparison modifiers](#comp
 ```html
 <div data-controller="form">
   <input type="text" data-action="form#checkCompleted">
-  <button data-bind-attr="disabled~form#statusValue:is('incomplete')">submit</button>
+  <button data-bind-attr="disabled~form#status:is('incomplete')">submit</button>
 </div>
 ```
 
 ```js
 export default class extends Controller {
-  static values = {
-    status: {
-      type: String,
-      default: "incomplete" // button disabled by default
-    }
+  initialize(){
+    this.status = "incomplete";
   }
 
   // called when the text input value is changed
   checkCompleted({ currentTarget }){
     if (currentTarget.value?.length > 0) {
-      this.statusValue === "complete"; // button will be enabled
+      this.status === "complete"; // button will be enabled
     }
   }
 }
@@ -343,12 +334,12 @@ export default class extends Controller {
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static values = {
-    count: Number,
+  initialize(){
+    this.count = 0;
   }
 
   get validityClasses(){
-    if (this.countValue > 10) {
+    if (this.count > 10) {
       return "text-red font-bold";
     } else {
       return "text-green";
@@ -357,10 +348,10 @@ export default class extends Controller {
 }
 ```
 
-In the example above, the value of the `validityClasses` property is a string of classes that depends on whether or not the `countValue` is greater than `10`:
+In the example above, the value of the `validityClasses` property is a string of classes that depends on whether or not the value of the `count` property is greater than `10`:
 
-* If `countValue > 10` then the element `class` attribute will be set to `"text-red font-bold"`.
-* If `countValue < 10` then the element `class` attribute will be set to `"text-green"`.
+* If `this.count > 10` then the element `class` attribute will be set to `"text-red font-bold"`.
+* If `this.count < 10` then the element `class` attribute will be set to `"text-green"`.
 
 The list of classes can be returned as a **string** or as an **array** - or as a special [class object](#class-objects).
 
@@ -375,8 +366,8 @@ export default class extends Controller {
   // ...
   get validityClasses(){
     return {
-      "text-red font-bold": this.countValue > 10,
-      "text-green": this.countValue <= 10,
+      "text-red font-bold": this.count > 10,
+      "text-green": this.count <= 10,
     }
   }
 }
@@ -392,7 +383,7 @@ Text content bindings are specified using `data-bind-text` attributes where the 
 
 ```html
 <div data-controller="workflow">
-  Status: <span data-bind-text="workflow#statusValue"></span>
+  Status: <span data-bind-text="workflow#status"></span>
 </div>
 ```
 
@@ -421,15 +412,12 @@ HTML bindings are specified using `data-bind-html` attributes where the value is
 
 ```js
 export default class extends Controller {
-  static values = {
-    status: {
-      type: String,
-      default: "in progress"
-    }
+  initialize(){
+    this.status = "in progress";
   }
 
   get statusIcon(){
-    if (this.statusValue === "complete"){
+    if (this.status === "complete"){
       return `<i data-icon="in-complete"></i>`;
     } else {
       return `<i data-icon="in-progress"></i>`;
@@ -447,11 +435,11 @@ Modifiers are appended to the end of [binding descriptors](#binding-descriptors)
 The example below uses the `upcase` modifier to transform the title to upper case before displaying it on the page:
 
 ```html
-<h1 data-bind-text="article#titleValue:upcase"></h1>
+<h1 data-bind-text="article#title:upcase"></h1>
 ```
 
 > [!TIP]
-> _Multiple modifiers can be piped together one after each other, separated by colons, e.g. `article#titleValue:upcase:trim`_
+> _Multiple modifiers can be piped together one after each other, separated by colons, e.g. `article#title:upcase:trim`_
 
 <h3 id="string-transform-modifiers">String transform modifiers</h3>
 
