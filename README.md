@@ -25,7 +25,7 @@ _StimulusX_ brings modern **reactive programming paradigms** to [Stimulus](https
 <br>
 **Who is StimulusX for?**
 
-If you are a Stimulus user and are tired of writing repetitive DOM manipulation code then StimulusX's declarative, live-updating **controller&rarr;HTML bindings** might be just what you need. _StimulusX_ will make your controllers cleaner & leaner whilst ensuring they are less tightly coupled to a specific markup stucture.
+If you are a Stimulus user and are tired of writing repetitive DOM manipulation code then StimulusX's declarative, live-updating **controller&rarr;HTML bindings** might be just what you need to brighten up your day. _StimulusX_ will make your controllers cleaner & leaner whilst ensuring they are less tightly coupled to a specific markup structure.
 
 However if you are _not_ currently a Stimulus user then I'd definitely recommend looking at something like [Alpine](https://alpinejs.dev), [VueJS](https://vuejs.org/) or [Svelte](https://svelte.dev/) first before considering a `Stimulus + StimulusX` combo, as they will likely provide a more elegant fit for your needs.
 
