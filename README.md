@@ -73,10 +73,6 @@ export default class extends Controller {
     this.count--;
   }
 
-  get displayText(){
-    return `${this.count} of ${this.max}`;
-  }
-
   get textClasses(){
     return {
       "text-green": this.count <= this.max,
