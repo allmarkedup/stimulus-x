@@ -12,54 +12,46 @@ _Reactivity engine for Stimulus controllers_
 
 ---
 
-_StimulusX_ brings the power of **reactive programming** to [Stimulus](https://stimulus.hotwired.dev). It provides a **declarative syntax** for creating **live _controller&rarr;HTML_ connections** that greatly reduce the need for tedious manual DOM manipulation code in your controllers, making them cleaner, leaner and more flexible 😎
+_StimulusX_ brings modern **reactive programming paradigms** to [Stimulus](https://stimulus.hotwired.dev) controllers.
 
-## Features
+**Features include:**
 
-### ❎&nbsp; Automatic UI updates with reactive DOM bindings 
+❎ &nbsp;Automatic UI updates with reactive DOM bindings<br>
+❎ &nbsp;Declarative binding syntax based on Stimulus' [action descriptors](https://stimulus.hotwired.dev/reference/actions#descriptors)<br>
+❎ &nbsp;Chainable value modifiers <br>
+❎ &nbsp;Property watcher callback <br>
+❎ &nbsp;Extension API
+<br>
+<br>
+**Who is StimulusX for?**
 
-* Connect HTML attributes (and content) to controller properties using `data-bind-*` attributes in your markup.
-* HTML attributes and content will automatically be kept in sync with the value of the properties they are bound to via the magic of _reactive data bindings_.
-* Use chainable value modifiers to transform property values before applying to the DOM.
+If you are a Stimulus user and are tired of writing repetitive DOM manipulation code then StimulusX's declarative, live-updating **controller&rarr;HTML bindings** might be just what you need. _StimulusX_ will make your controllers cleaner & leaner whilst ensuring they are less tightly coupled to a specific markup stucture.
 
-&nbsp;&nbsp;&nbsp; 📚 [**Read the docs &rarr;**](#dom-bindings-overview)
+However if you are _not_ currently a Stimulus user then I'd definitely recommend looking at something like [Alpine](https://alpinejs.dev), [VueJS](https://vuejs.org/) or [Svelte](https://svelte.dev/) first before considering a `Stimulus + StimulusX` combo, as they will likely provide a more elegant fit for your needs.
 
-### ❎&nbsp; Property watchers
+[ &darr; Skip examples and jump to the docs &darr;](#installation)
 
-* Watch any controller property for changes
-* `[name]PropertyChanged` callback methods available for all watched properties
-
-&nbsp;&nbsp;&nbsp; 📚 [**Read the docs &rarr;**](#watching-properties)
-
-### ❎&nbsp; Extensibility
-
-* Straighforward **extension API**
-* Add custom **modifiers** and **directives**
-
-&nbsp;&nbsp;&nbsp; 📚 [**Read the docs &rarr;**](#extending)
-
-## Counter example
+### Example: A simple counter
 
 Below is an example of a simple `counter` controller implemented using StimulusX's reactive DOM bindings.
 
 > [!TIP]
 > _You can find a [runnable version of this example on JSfiddle &rarr;](https://jsfiddle.net/allmarkedup/q293ay8v/)_
 
-
 <img src=".github/assets/counter.gif" width="120">
 
 ```html
 <div data-controller="counter">
-  <div
-    data-bind-attr="class~counter#validityClasses"
+  <span
+    data-bind-attr="class~counter#textClasses"
     data-bind-text="counter#displayText"
-    class="display">
-  </div>
+  ></span>
 
   <button data-action="counter#increment">⬆️</button>
   <button
-    data-bind-attr="disabled~counter#count:lte(0)"
-    data-action="counter#decrement">⬇️</button>
+    data-bind-attr="disabled~counter#countValue:lte(0)"
+    data-action="counter#decrement"
+  >⬇️</button>
 </div>
 ```
 
@@ -76,18 +68,6 @@ export default class extends Controller {
     }
   }
 
-  get displayText(){
-    return `${this.countValue} of ${this.maxValue}`;
-  }
-  
-  get validityClasses(){
-    const valid = this.countValue <= this.maxValue;
-    return {
-      "text-green": valid,
-      "text-red font-bold": !valid,
-    }
-  }
-
   increment(){
     this.countValue++;
   }
@@ -95,6 +75,17 @@ export default class extends Controller {
   decrement(){
     this.countValue--;
   }
+
+  get displayText(){
+    return `${this.countValue} of ${this.maxValue}`;
+  }
+
+  get textClasses(){
+    return {
+      "text-green": this.countValue <= this.maxValue,
+      "text-red font-bold": this.countValue > this.maxValue,
+    }
+  }  
 }
 ```
 
