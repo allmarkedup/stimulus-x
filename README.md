@@ -223,6 +223,27 @@ Boolean property values can be negated (inverted) by prefixing the `identifier#p
 > [!NOTE]
 > _The `!` prefix is really just an more concise alternative syntax for applying [the `:not` modifier](#binding-value-modifiers)._
 
+### Shallow vs deep reactivity
+
+By default StimulusX only tracks changes to **top level** controller properties to figure out when to update the DOM. This is _shallow reactivity_.
+
+To enable _deep reactivity_ for a controller (i.e. the ability to track changes to **properties in nested objects**) you can can set the static `reactive` property to `"deep"` within your controller:
+
+```js
+import { Controller } from "@hotwired/stimulus"
+
+export default class extends Controller {
+  static reactive = "deep"; // enable deep reactivity mode
+  // ...
+}
+```
+
+Alternatively you can enable deep reactivity for **all** controllers using the `trackDeep` option when [initializing StimulusX](#usage):
+
+```js
+StimulusX.init(Stimulus, { trackDeep: true }); 
+```
+
 <h2 id="attribute-bindings">Attribute bindings</h2>
 
 Attribute bindings connect **HTML attribute values** to **controller properties**, and ensure that the attribute value is automatically updated so as to stay in sync with the value of the controller property at all times.
