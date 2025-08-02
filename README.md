@@ -42,10 +42,10 @@ Below is an example of a simple `counter` controller implemented using StimulusX
 
 ```html
 <div data-controller="counter">
-  <span
-    data-bind-attr="class~counter#textClasses"
-    data-bind-text="counter#displayText"
-  ></span>
+  <span data-bind-attr="class~counter#displayClasses">
+    <span data-bind-text="counter#count"></span> of
+    <span data-bind-text="counter#max"></span>
+  </span>
 
   <button data-action="counter#increment">⬆️</button>
   <button
