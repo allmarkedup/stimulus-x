@@ -73,7 +73,7 @@ export default class extends Controller {
     this.count--;
   }
 
-  get textClasses(){
+  get displayClasses(){
     return {
       "text-green": this.count <= this.max,
       "text-red font-bold": this.count > this.max,
