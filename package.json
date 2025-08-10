@@ -25,7 +25,6 @@
   "scripts": {
     "watch": "parcel watch",
     "build": "parcel build",
-    "serve": "parcel serve --target=demo",
     "test": "vitest run",
     "test:watch": "vitest",
     "release": "release-it"
