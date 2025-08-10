@@ -282,6 +282,8 @@ function $c6f8b3abaeac122e$var$onMutate(mutations) {
 
 const $50e97065b94a2e88$var$defaultOptions = {
     optIn: false,
+    attributePrefix: "data-bind-",
+    shorthandAttributePrefix: "sx-",
     compileDirectives: true,
     trackDeep: false
 };
@@ -439,8 +441,6 @@ let $695a1f9e83b71f7c$var$directiveHandlers = {};
 let $695a1f9e83b71f7c$var$isDeferringHandlers = false;
 let $695a1f9e83b71f7c$var$directiveHandlerStacks = new Map();
 let $695a1f9e83b71f7c$var$currentHandlerStackKey = Symbol();
-let $695a1f9e83b71f7c$var$attributePrefix = "data-bind-";
-let $695a1f9e83b71f7c$var$altAttributePrefix = "sx-";
 function $695a1f9e83b71f7c$export$99b43ad1ed32e735(name, callback) {
     $695a1f9e83b71f7c$var$directiveHandlers[name] = callback;
 }
@@ -514,16 +514,18 @@ function $695a1f9e83b71f7c$var$evaluator(controller) {
     return (property)=>(0, $61c34dda51f70fa1$export$121af9acc174ac93)(controller, property);
 }
 function $695a1f9e83b71f7c$var$matchedAttributeRegex() {
-    return new RegExp(`${$695a1f9e83b71f7c$var$attributePrefix}(${$695a1f9e83b71f7c$var$directiveNames().join("|")})$`);
+    const prefix = (0, $50e97065b94a2e88$export$6df0712d20d2cc08)("attributePrefix");
+    return new RegExp(`${prefix}(${$695a1f9e83b71f7c$var$directiveNames().join("|")})$`);
 }
 function $695a1f9e83b71f7c$var$isDirectiveAttribute({ name: name }) {
-    return name.startsWith($695a1f9e83b71f7c$var$altAttributePrefix) || $695a1f9e83b71f7c$var$matchedAttributeRegex().test(name);
+    const prefix = (0, $50e97065b94a2e88$export$6df0712d20d2cc08)("shorthandAttributePrefix");
+    return name.startsWith(prefix) || $695a1f9e83b71f7c$var$matchedAttributeRegex().test(name);
 }
 function $695a1f9e83b71f7c$var$directiveNames() {
     return Object.keys($695a1f9e83b71f7c$var$directiveHandlers);
 }
 function $695a1f9e83b71f7c$var$toParsedDirectives(attr) {
-    if (attr.name.startsWith($695a1f9e83b71f7c$var$altAttributePrefix)) return $695a1f9e83b71f7c$var$parseAlternativeSyntaxAttributeDirectives(attr);
+    if (attr.name.startsWith((0, $50e97065b94a2e88$export$6df0712d20d2cc08)("shorthandAttributePrefix"))) return $695a1f9e83b71f7c$var$parseShorthandSyntaxAttributeDirectives(attr);
     else return $695a1f9e83b71f7c$var$parseStandardSyntaxAttributeDirectives(attr);
 }
 function $695a1f9e83b71f7c$var$parseStandardSyntaxAttributeDirectives(originalAttribute) {
@@ -543,9 +545,10 @@ function $695a1f9e83b71f7c$var$parseStandardSyntaxAttributeDirectives(originalAt
         };
     });
 }
-function $695a1f9e83b71f7c$var$parseAlternativeSyntaxAttributeDirectives(originalAttribute) {
+function $695a1f9e83b71f7c$var$parseShorthandSyntaxAttributeDirectives(originalAttribute) {
     const { name: name, value: value } = originalAttribute;
-    const attributeName = name.replace($695a1f9e83b71f7c$var$altAttributePrefix, "");
+    const prefix = (0, $50e97065b94a2e88$export$6df0712d20d2cc08)("shorthandAttributePrefix");
+    const attributeName = name.replace(prefix, "");
     const type = $695a1f9e83b71f7c$var$directiveNames().includes(attributeName) ? attributeName : "attr";
     return [
         {
@@ -560,7 +563,7 @@ function $695a1f9e83b71f7c$var$parseBindingValueExpression(bindingExpression) {
     let [valueExpression, modifiersExpression = ""] = bindingExpression.trim().split(/\:(.*)/);
     const modifiers = modifiersExpression.match(/[^:\]]+(?=[^\]]*$)/g) || [];
     if (valueExpression[0] === "!") {
-        // Alternative `:not` modifier syntax
+        // Shorthand `:not` modifier syntax
         valueExpression = valueExpression.slice(1);
         modifiers.push("not");
     }
