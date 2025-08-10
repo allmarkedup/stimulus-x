@@ -1,5 +1,7 @@
 const defaultOptions = {
   optIn: false,
+  attributePrefix: "data-bind-",
+  shorthandAttributePrefix: "sx-",
   compileDirectives: true,
   trackDeep: false,
 };

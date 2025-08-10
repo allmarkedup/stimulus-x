@@ -9,9 +9,6 @@ let isDeferringHandlers = false;
 let directiveHandlerStacks = new Map();
 let currentHandlerStackKey = Symbol();
 
-let attributePrefix = "data-bind-";
-let altAttributePrefix = "sx-";
-
 export function directive(name, callback) {
   directiveHandlers[name] = callback;
 }
@@ -114,11 +111,13 @@ function evaluator(controller) {
 }
 
 function matchedAttributeRegex() {
-  return new RegExp(`${attributePrefix}(${directiveNames().join("|")})$`);
+  const prefix = getOption("attributePrefix");
+  return new RegExp(`${prefix}(${directiveNames().join("|")})$`);
 }
 
 function isDirectiveAttribute({ name }) {
-  return name.startsWith(altAttributePrefix) || matchedAttributeRegex().test(name);
+  const prefix = getOption("shorthandAttributePrefix");
+  return name.startsWith(prefix) || matchedAttributeRegex().test(name);
 }
 
 function directiveNames() {
@@ -126,8 +125,8 @@ function directiveNames() {
 }
 
 function toParsedDirectives(attr) {
-  if (attr.name.startsWith(altAttributePrefix)) {
-    return parseAlternativeSyntaxAttributeDirectives(attr);
+  if (attr.name.startsWith(getOption("shorthandAttributePrefix"))) {
+    return parseShorthandSyntaxAttributeDirectives(attr);
   } else {
     return parseStandardSyntaxAttributeDirectives(attr);
   }
@@ -157,9 +156,10 @@ function parseStandardSyntaxAttributeDirectives(originalAttribute) {
   });
 }
 
-function parseAlternativeSyntaxAttributeDirectives(originalAttribute) {
+function parseShorthandSyntaxAttributeDirectives(originalAttribute) {
   const { name, value } = originalAttribute;
-  const attributeName = name.replace(altAttributePrefix, "");
+  const prefix = getOption("shorthandAttributePrefix");
+  const attributeName = name.replace(prefix, "");
   const type = directiveNames().includes(attributeName) ? attributeName : "attr";
 
   return [
@@ -177,7 +177,7 @@ function parseBindingValueExpression(bindingExpression) {
   const modifiers = modifiersExpression.match(/[^:\]]+(?=[^\]]*$)/g) || [];
 
   if (valueExpression[0] === "!") {
-    // Alternative `:not` modifier syntax
+    // Shorthand `:not` modifier syntax
     valueExpression = valueExpression.slice(1);
     modifiers.push("not");
   }
