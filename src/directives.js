@@ -9,8 +9,6 @@ let isDeferringHandlers = false;
 let directiveHandlerStacks = new Map();
 let currentHandlerStackKey = Symbol();
 
-let attributePrefix = "data-bind-";
-
 export function directive(name, callback) {
   directiveHandlers[name] = callback;
 }
@@ -80,7 +78,7 @@ export function getDirectiveHandler(el, directive) {
   let handler = directiveHandlers[directive.type] || (() => {});
   let [utilities, cleanup] = getElementBoundUtilities(el);
 
-  onAttributeRemoved(el, directive.attr, cleanup);
+  onAttributeRemoved(el, directive.originalAttribute.name, cleanup);
 
   let wrapperHandler = () => {
     let controller = getClosestController(el, directive.identifier);
@@ -113,55 +111,89 @@ function evaluator(controller) {
 }
 
 function matchedAttributeRegex() {
-  return new RegExp(`${attributePrefix}(${Object.keys(directiveHandlers).join("|")})$`);
+  const prefix = getOption("attributePrefix");
+  return new RegExp(`${prefix}(${directiveNames().join("|")})$`);
 }
 
 function isDirectiveAttribute({ name }) {
-  return matchedAttributeRegex().test(name);
+  const prefix = getOption("shorthandAttributePrefix");
+  return name.startsWith(prefix) || matchedAttributeRegex().test(name);
 }
 
-function toParsedDirectives({ name, value }) {
+function directiveNames() {
+  return Object.keys(directiveHandlers);
+}
+
+function toParsedDirectives(attr) {
+  if (attr.name.startsWith(getOption("shorthandAttributePrefix"))) {
+    return parseShorthandSyntaxAttributeDirectives(attr);
+  } else {
+    return parseStandardSyntaxAttributeDirectives(attr);
+  }
+}
+
+function parseStandardSyntaxAttributeDirectives(originalAttribute) {
+  const { name, value } = originalAttribute;
   const type = name.match(matchedAttributeRegex())[1];
-  const bindingExpressions = value
+  const expressions = value
     .trim()
     .split(/\s+(?![^\(]*\))/) // split string on all spaces not contained in parentheses
     .filter((e) => e);
 
-  return bindingExpressions.map((bindingExpression) => {
-    const subjectMatch = bindingExpression.match(/^([a-zA-Z0-9\-_]+)~/);
-    const subject = subjectMatch ? subjectMatch[1] : null;
-    let valueExpression = subject
-      ? bindingExpression.replace(`${subject}~`, "")
-      : bindingExpression;
-
-    let modifiers = valueExpression.match(/\:[^:\]]+(?=[^\]]*$)/g) || [];
-    modifiers = modifiers.map((i) => i.replace(":", ""));
-
-    valueExpression = valueExpression.split(":")[0];
-
-    if (valueExpression[0] === "!") {
-      valueExpression = valueExpression.slice(1);
-      modifiers.push("not");
-    }
-
-    modifiers = modifiers.map((m) => parseModifier(m));
-
-    const identifierMatch = valueExpression.match(/^([a-zA-Z0-9\-_]+)#/);
-    if (!identifierMatch) {
-      console.warn(`Invalid binding descriptor ${bindingExpression}`);
-      return null;
-    }
-
-    const identifier = identifierMatch[1];
-    let property = identifier ? valueExpression.replace(`${identifier}#`, "") : valueExpression;
+  return expressions.map((expression) => {
+    const attrMatch = expression.match(/^([a-zA-Z0-9\-_]+)~/);
+    const attributeName = attrMatch ? attrMatch[1] : null;
+    const bindingExpression = attributeName
+      ? expression.replace(`${attributeName}~`, "")
+      : expression;
 
     return {
+      originalAttribute,
+      attributeName,
       type,
-      subject,
-      modifiers,
-      identifier,
-      property,
-      attr: name,
+      ...parseBindingValueExpression(bindingExpression),
     };
   });
+}
+
+function parseShorthandSyntaxAttributeDirectives(originalAttribute) {
+  const { name, value } = originalAttribute;
+  const prefix = getOption("shorthandAttributePrefix");
+  const attributeName = name.replace(prefix, "");
+  const type = directiveNames().includes(attributeName) ? attributeName : "attr";
+
+  return [
+    {
+      originalAttribute,
+      attributeName,
+      type,
+      ...parseBindingValueExpression(value),
+    },
+  ];
+}
+
+function parseBindingValueExpression(bindingExpression) {
+  let [valueExpression, modifiersExpression = ""] = bindingExpression.trim().split(/\:(.*)/);
+  const modifiers = modifiersExpression.match(/[^:\]]+(?=[^\]]*$)/g) || [];
+
+  if (valueExpression[0] === "!") {
+    // Shorthand `:not` modifier syntax
+    valueExpression = valueExpression.slice(1);
+    modifiers.push("not");
+  }
+
+  const identifierMatch = valueExpression.match(/^([a-zA-Z0-9\-_]+)#/);
+  if (!identifierMatch) {
+    console.warn(`Invalid binding descriptor ${bindingExpression}`);
+    return null;
+  }
+
+  const identifier = identifierMatch[1];
+  const property = identifier ? valueExpression.replace(`${identifier}#`, "") : valueExpression;
+
+  return {
+    identifier,
+    property,
+    modifiers: modifiers.map((m) => parseModifier(m)),
+  };
 }

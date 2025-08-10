@@ -9,7 +9,7 @@ beforeAll(async () => {
 
 afterAll(() => context.teardown());
 
-describe("text content", async () => {
+describe("shorthand syntax - text content", async () => {
   beforeAll(() =>
     context.subject(
       class extends Controller {
@@ -26,7 +26,7 @@ describe("text content", async () => {
   test("applies the default value from controller", async () => {
     const { getTestElement, subjectController } = await context.testDOM(`
       <div data-controller="subject">
-        <div data-bind-text="subject#stringValue" data-test-element="target"></div>
+        <div sx-text="subject#stringValue" data-test-element="target"></div>
       </div>
     `);
 
@@ -38,7 +38,7 @@ describe("text content", async () => {
 
     const { getTestElement } = await context.testDOM(`
       <div data-controller="subject" data-subject-string-value="${stringAttrValue}">
-        <div data-bind-text="subject#stringValue" data-test-element="target"></div>
+        <div sx-text="subject#stringValue" data-test-element="target"></div>
       </div>
     `);
 
@@ -48,7 +48,7 @@ describe("text content", async () => {
   test("replaces any existing content", async () => {
     const { getTestElement, subjectController } = await context.testDOM(`
       <div data-controller="subject">
-        <div data-bind-text="subject#stringValue" data-test-element="target">this will be replaced</div>
+        <div sx-text="subject#stringValue" data-test-element="target">this will be replaced</div>
       </div>
     `);
 
@@ -59,7 +59,7 @@ describe("text content", async () => {
   test("updates the text content when the value property changes", async () => {
     const { getTestElement, subjectController } = await context.testDOM(`
       <div data-controller="subject">
-        <div data-bind-text="subject#stringValue" data-test-element="target"></div>
+        <div sx-text="subject#stringValue" data-test-element="target"></div>
       </div>
     `);
     const element = getTestElement("target");

@@ -282,6 +282,8 @@ function $c6f8b3abaeac122e$var$onMutate(mutations) {
 
 const $50e97065b94a2e88$var$defaultOptions = {
     optIn: false,
+    attributePrefix: "data-bind-",
+    shorthandAttributePrefix: "sx-",
     compileDirectives: true,
     trackDeep: false
 };
@@ -439,7 +441,6 @@ let $695a1f9e83b71f7c$var$directiveHandlers = {};
 let $695a1f9e83b71f7c$var$isDeferringHandlers = false;
 let $695a1f9e83b71f7c$var$directiveHandlerStacks = new Map();
 let $695a1f9e83b71f7c$var$currentHandlerStackKey = Symbol();
-let $695a1f9e83b71f7c$var$attributePrefix = "data-bind-";
 function $695a1f9e83b71f7c$export$99b43ad1ed32e735(name, callback) {
     $695a1f9e83b71f7c$var$directiveHandlers[name] = callback;
 }
@@ -491,7 +492,7 @@ function $695a1f9e83b71f7c$export$a51f92c9c1609d03(el) {
 function $695a1f9e83b71f7c$export$1dd40105af141b08(el, directive) {
     let handler = $695a1f9e83b71f7c$var$directiveHandlers[directive.type] || (()=>{});
     let [utilities, cleanup] = $695a1f9e83b71f7c$export$a51f92c9c1609d03(el);
-    (0, $c6f8b3abaeac122e$export$5d89a587b01747c6)(el, directive.attr, cleanup);
+    (0, $c6f8b3abaeac122e$export$5d89a587b01747c6)(el, directive.originalAttribute.name, cleanup);
     let wrapperHandler = ()=>{
         let controller = (0, $61c34dda51f70fa1$export$6d5f0ef1727b562e)(el, directive.identifier);
         if (controller) {
@@ -513,43 +514,71 @@ function $695a1f9e83b71f7c$var$evaluator(controller) {
     return (property)=>(0, $61c34dda51f70fa1$export$121af9acc174ac93)(controller, property);
 }
 function $695a1f9e83b71f7c$var$matchedAttributeRegex() {
-    return new RegExp(`${$695a1f9e83b71f7c$var$attributePrefix}(${Object.keys($695a1f9e83b71f7c$var$directiveHandlers).join("|")})$`);
+    const prefix = (0, $50e97065b94a2e88$export$6df0712d20d2cc08)("attributePrefix");
+    return new RegExp(`${prefix}(${$695a1f9e83b71f7c$var$directiveNames().join("|")})$`);
 }
 function $695a1f9e83b71f7c$var$isDirectiveAttribute({ name: name }) {
-    return $695a1f9e83b71f7c$var$matchedAttributeRegex().test(name);
+    const prefix = (0, $50e97065b94a2e88$export$6df0712d20d2cc08)("shorthandAttributePrefix");
+    return name.startsWith(prefix) || $695a1f9e83b71f7c$var$matchedAttributeRegex().test(name);
 }
-function $695a1f9e83b71f7c$var$toParsedDirectives({ name: name, value: value }) {
+function $695a1f9e83b71f7c$var$directiveNames() {
+    return Object.keys($695a1f9e83b71f7c$var$directiveHandlers);
+}
+function $695a1f9e83b71f7c$var$toParsedDirectives(attr) {
+    if (attr.name.startsWith((0, $50e97065b94a2e88$export$6df0712d20d2cc08)("shorthandAttributePrefix"))) return $695a1f9e83b71f7c$var$parseShorthandSyntaxAttributeDirectives(attr);
+    else return $695a1f9e83b71f7c$var$parseStandardSyntaxAttributeDirectives(attr);
+}
+function $695a1f9e83b71f7c$var$parseStandardSyntaxAttributeDirectives(originalAttribute) {
+    const { name: name, value: value } = originalAttribute;
     const type = name.match($695a1f9e83b71f7c$var$matchedAttributeRegex())[1];
-    const bindingExpressions = value.trim().split(/\s+(?![^\(]*\))/) // split string on all spaces not contained in parentheses
+    const expressions = value.trim().split(/\s+(?![^\(]*\))/) // split string on all spaces not contained in parentheses
     .filter((e)=>e);
-    return bindingExpressions.map((bindingExpression)=>{
-        const subjectMatch = bindingExpression.match(/^([a-zA-Z0-9\-_]+)~/);
-        const subject = subjectMatch ? subjectMatch[1] : null;
-        let valueExpression = subject ? bindingExpression.replace(`${subject}~`, "") : bindingExpression;
-        let modifiers = valueExpression.match(/\:[^:\]]+(?=[^\]]*$)/g) || [];
-        modifiers = modifiers.map((i)=>i.replace(":", ""));
-        valueExpression = valueExpression.split(":")[0];
-        if (valueExpression[0] === "!") {
-            valueExpression = valueExpression.slice(1);
-            modifiers.push("not");
-        }
-        modifiers = modifiers.map((m)=>(0, $e46f4b33a7e1fc07$export$b03ed9b4aed11ed)(m));
-        const identifierMatch = valueExpression.match(/^([a-zA-Z0-9\-_]+)#/);
-        if (!identifierMatch) {
-            console.warn(`Invalid binding descriptor ${bindingExpression}`);
-            return null;
-        }
-        const identifier = identifierMatch[1];
-        let property = identifier ? valueExpression.replace(`${identifier}#`, "") : valueExpression;
+    return expressions.map((expression)=>{
+        const attrMatch = expression.match(/^([a-zA-Z0-9\-_]+)~/);
+        const attributeName = attrMatch ? attrMatch[1] : null;
+        const bindingExpression = attributeName ? expression.replace(`${attributeName}~`, "") : expression;
         return {
+            originalAttribute: originalAttribute,
+            attributeName: attributeName,
             type: type,
-            subject: subject,
-            modifiers: modifiers,
-            identifier: identifier,
-            property: property,
-            attr: name
+            ...$695a1f9e83b71f7c$var$parseBindingValueExpression(bindingExpression)
         };
     });
+}
+function $695a1f9e83b71f7c$var$parseShorthandSyntaxAttributeDirectives(originalAttribute) {
+    const { name: name, value: value } = originalAttribute;
+    const prefix = (0, $50e97065b94a2e88$export$6df0712d20d2cc08)("shorthandAttributePrefix");
+    const attributeName = name.replace(prefix, "");
+    const type = $695a1f9e83b71f7c$var$directiveNames().includes(attributeName) ? attributeName : "attr";
+    return [
+        {
+            originalAttribute: originalAttribute,
+            attributeName: attributeName,
+            type: type,
+            ...$695a1f9e83b71f7c$var$parseBindingValueExpression(value)
+        }
+    ];
+}
+function $695a1f9e83b71f7c$var$parseBindingValueExpression(bindingExpression) {
+    let [valueExpression, modifiersExpression = ""] = bindingExpression.trim().split(/\:(.*)/);
+    const modifiers = modifiersExpression.match(/[^:\]]+(?=[^\]]*$)/g) || [];
+    if (valueExpression[0] === "!") {
+        // Shorthand `:not` modifier syntax
+        valueExpression = valueExpression.slice(1);
+        modifiers.push("not");
+    }
+    const identifierMatch = valueExpression.match(/^([a-zA-Z0-9\-_]+)#/);
+    if (!identifierMatch) {
+        console.warn(`Invalid binding descriptor ${bindingExpression}`);
+        return null;
+    }
+    const identifier = identifierMatch[1];
+    const property = identifier ? valueExpression.replace(`${identifier}#`, "") : valueExpression;
+    return {
+        identifier: identifier,
+        property: property,
+        modifiers: modifiers.map((m)=>(0, $e46f4b33a7e1fc07$export$b03ed9b4aed11ed)(m))
+    };
 }
 
 
@@ -831,11 +860,11 @@ function $14a833556dde2961$var$attributeShouldntBePreservedIfFalsy(name) {
 }
 
 
-(0, $695a1f9e83b71f7c$export$99b43ad1ed32e735)("attr", (el, { property: property, subject: subject, modifiers: modifiers }, { effect: effect, evaluate: evaluate, modify: modify })=>{
+(0, $695a1f9e83b71f7c$export$99b43ad1ed32e735)("attr", (el, { property: property, attributeName: attributeName, modifiers: modifiers }, { effect: effect, evaluate: evaluate, modify: modify })=>{
     effect(()=>{
         (0, $c6f8b3abaeac122e$export$c98382a3d82f9519)(()=>{
             const value = modify(evaluate(property), modifiers);
-            (0, $14a833556dde2961$export$2385a24977818dd0)(el, subject, value);
+            (0, $14a833556dde2961$export$2385a24977818dd0)(el, attributeName, value);
         });
     });
 });
