@@ -26,7 +26,8 @@ export function directives(el, attributes) {
     directives = el.__stimulusX_directives;
   } else {
     directives = Array.from(attributes).filter(isDirectiveAttribute).map(toParsedDirectives);
-    if (getOption("compileDirectives") === true) el.__stimulusX_directives = directives;
+    if (getOption("compileDirectives") === true && attributes === el.attributes)
+      el.__stimulusX_directives = directives;
   }
 
   return directives
