@@ -451,7 +451,7 @@ function $695a1f9e83b71f7c$export$90a684c00f3df6ed(el, attributes) {
     if (el.__stimulusX_directives) directives = el.__stimulusX_directives;
     else {
         directives = Array.from(attributes).filter($695a1f9e83b71f7c$var$isDirectiveAttribute).map($695a1f9e83b71f7c$var$toParsedDirectives);
-        if ((0, $50e97065b94a2e88$export$6df0712d20d2cc08)("compileDirectives") === true) el.__stimulusX_directives = directives;
+        if ((0, $50e97065b94a2e88$export$6df0712d20d2cc08)("compileDirectives") === true && attributes === el.attributes) el.__stimulusX_directives = directives;
     }
     return directives.flat().filter((d)=>d).map((directive)=>$695a1f9e83b71f7c$export$1dd40105af141b08(el, directive));
 }
